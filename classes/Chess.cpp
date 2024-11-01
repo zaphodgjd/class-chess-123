@@ -12,7 +12,7 @@ Chess::~Chess()
 }
 
 //
-// make an X or an O
+// make a chess piece for the player
 //
 Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
 {
@@ -51,6 +51,10 @@ bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
 {
     return false;
+}
+
+void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
+    
 }
 
 //

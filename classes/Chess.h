@@ -34,6 +34,8 @@ public:
     bool        actionForEmptyHolder(BitHolder& holder) override;
     bool        canBitMoveFrom(Bit& bit, BitHolder& src) override;
     bool        canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) override;
+    void        bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
+
     void        stopGame() override;
     BitHolder& getHolderAt(const int x, const int y) override { return _grid[y][x]; }
 
