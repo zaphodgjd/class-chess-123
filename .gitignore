@@ -1,0 +1,69 @@
+# Ignore build directories
+/build
+/out
+/bin
+/CMakeFiles
+/CMakeCache.txt
+
+# Ignore executables
+*.exe
+*.out
+*.app
+*.o
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+
+# Ignore generated files
+*.cmake
+*.log
+Makefile
+cmake_install.cmake
+
+# Visual Studio Code specific files
+.vscode/
+*.code-workspace
+
+# Ignore IDE-related metadata
+*.sln
+*.vcxproj*
+*.user
+*.pdb
+*.idb
+*.ipch
+*.obj
+*.tlog
+*.lastbuildstate
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.VC.opendb
+
+# macOS specific ignores
+.DS_Store
+.idea/
+*.DS_Store
+
+# Windows specific ignores
+Thumbs.db
+*.tmp
+*.bak
+*.old
+
+# Linux-specific temporary files
+*~
+
+# Core dumps
+core
+*.core
+
+# Application-specific temporary files
+*.log
+*.pid
+*.seed
+
+# Editor temporary files
+.*.swp
+.*.swo
