@@ -15,15 +15,18 @@ public:
 	bool canDropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 	bool dropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 
+	// 
 	std::string getNotation() { return _notation; }
 	void setNotation(std::string notation) { _notation = notation; }
 	void setMoveHighlighted(bool highlight);
 
+	// I'm confused by what the point of this is.
 	int getDistance(const ChessSquare &other) {
 		int columnDistance = abs(_column - other._column);
 		int rowDistance = abs(_row - other._row);
 		return columnDistance > rowDistance ? columnDistance : rowDistance;
 	}
+
 	int getColumn() { return _column; }
 	int getRow() { return _row; }
 	int getIndex() { return _row * 8 + _column; }

@@ -41,7 +41,7 @@ namespace ClassGame {
 		ImGui::Begin("GameWindow");
 		game->drawFrame();
 		ImGui::End();
-		Logger::getInstance().draw();
+		Loggy.draw();
 	}
 
 	// end turn is called by the game code at the end of each turn

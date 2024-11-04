@@ -1,5 +1,6 @@
 #include "BitHolder.h"
 #include "Bit.h"
+#include "../tools/Logger.h"
 
 BitHolder::~BitHolder() {
 
@@ -10,8 +11,7 @@ Bit* BitHolder::bit() const {
 	return _bit;
 }
 
-Bit* BitHolder::bit()
-{
+Bit* BitHolder::bit() {
 	if (_bit && _bit->getParent() != this && !_bit->getPickedUp()) {
 		_bit->release();
 		_bit = nullptr;
@@ -28,6 +28,8 @@ void BitHolder::setBit(Bit* abit) {
 		if (_bit) {
 			_bit->retain();
 			_bit->setParent(this);
+			_bit->setPosition(this->getPosition());
+			Loggy.log(std::to_string(abit->gameTag()) + " placed at (" + std::to_string(abit->getPosition().x) + ", " + std::to_string(abit->getPosition().y) + ")");
 		}
 	}
 }
