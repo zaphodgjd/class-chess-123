@@ -5,10 +5,13 @@
 
 class Game;
 
-class Player
-{
+class Player {
 public:
-	Player() : _game(nullptr), _name(""), _playerNumber(-1), _aiPlayer(false) {};
+	Player() : 
+	_game(nullptr),
+	_name(""),
+	_playerNumber(-1),
+	_aiPlayer(false) {};
 	~Player() {};
 
 	static Player *initWithGame(Game *game) { Player *player = new Player(); player->_game = game; return player;}
@@ -16,8 +19,8 @@ public:
 
 	std::string		*name();
 	void			setName(const std::string &name) { _name = name; }
-	void            setPlayerNumber(int n) { _playerNumber = n; }
-	int			 	playerNumber() { return _playerNumber; }
+	void			setPlayerNumber(int n) { _playerNumber = n; }
+	int				playerNumber() { return _playerNumber; }
 	Game			*game();
 	int				index();
 	bool			isCurrent();
@@ -34,4 +37,3 @@ private:
 	int				_playerNumber;
 	bool			_aiPlayer;
 };
-

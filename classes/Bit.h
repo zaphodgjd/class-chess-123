@@ -5,25 +5,20 @@
 class Player;
 class BitHolder;
 
-//
 // these aren't used yet but will be used for dragging pieces
-//
 #define kPickedUpScale 1.2f
 #define kPickedUpOpacity 255
 
-enum bitz
-{
+enum bitz {
 	kBoardZ = 0,
 	kPieceZ = 3,
 	kPickupUpZ = 9920,
 	kMovingZ = 9930
 };
 
-class Bit : public Sprite
-{
+class Bit : public Sprite {
 public:
-	Bit() : Sprite()
-	{
+	Bit() : Sprite() {
 		_pickedUp = false;
 		_owner = nullptr;
 		_gameTag = 0;

@@ -24,13 +24,13 @@
 
 class GameTable;
 
-struct GameOptions
-{
+struct GameOptions {
 	bool AIPlaying;
 	int numberOfPlayers;
 	int AIPlayer;
-	int rowX;
-	int rowY;
+	int X;
+	int Y;
+	int size = X * Y;
 	int gameNumber;
 	unsigned int currentTurnNo;
 	int score;
@@ -39,8 +39,7 @@ struct GameOptions
 	bool AIvsAI;
 };
 
-class Game
-{
+class Game {
 public:
 	Game();
 	~Game();
@@ -98,24 +97,25 @@ public:
 
 	void setNumberOfPlayers(unsigned int playerCount);
 	void setAIPlayer(unsigned int playerNumber);
-	virtual int getAIDepathSearches() { return _gameOptions.AIDepthSearches; };
-	virtual int getAIMAXDepth() { return _gameOptions.AIMAXDepth; };
+	virtual int getAIDepathSearches() { return _gameOps.AIDepthSearches; };
+	virtual int getAIMAXDepth() { return _gameOps.AIMAXDepth; };
 
 	// mouse functions
 	void scanForMouse();
 	// function to return pointer to the [][] array of bitholders
-	virtual BitHolder &getHolderAt(const int x, const int y) = 0;
+	virtual BitHolder& getHolderAt(const int x, const int y) = 0;
+	virtual BitHolder& getHolderAt(const int i) = 0;
 
-	const unsigned int getCurrentTurnNo() { return _gameOptions.currentTurnNo; };
-	const int getScore() { return _gameOptions.score; };
-	void setScore(int score) { _gameOptions.score = score; };
+	const unsigned int getCurrentTurnNo() { return _gameOps.currentTurnNo; };
+	const int getScore() { return _gameOps.score; };
+	void setScore(int score) { _gameOps.score = score; };
 	// this code below limits class to two players at the most, but it ensures player 0 is white and player 1 is black
-	Player *getCurrentPlayer() { return (_players.size() != 0) ? _players.at(_gameOptions.currentTurnNo & 1) : nullptr; };
+	Player *getCurrentPlayer() { return (_players.size() != 0) ? _players.at(_gameOps.currentTurnNo & 1) : nullptr; };
 	Player *getPlayerAt(unsigned int playerNumber) { return (_players.size() != 0) ? _players.at(playerNumber) : nullptr;};
-	const int getAIPlayer() { return _gameOptions.AIPlayer; };
+	const int getAIPlayer() { return _gameOps.AIPlayer; };
 	const int getHumanPlayer()
 	{
-		if (_gameOptions.AIPlayer == 1)
+		if (_gameOps.AIPlayer == 1)
 			return 0;
 		else
 			return 1;
@@ -128,7 +128,7 @@ public:
 
 	std::string _lastMove;
 
-	GameOptions _gameOptions;
+	GameOptions _gameOps;
 
 protected:
 	void mouseDown(ImVec2 &location, Entity *bit);
@@ -139,9 +139,9 @@ protected:
 	ImVec2 _dragStartPos;
 	ImVec2 _dragOffset;
 	ImVec2 _oldPos;
-	Bit *_dragBit;
-	BitHolder *_dragHolder;
-	BitHolder *_dropTarget;
-	BitHolder *_oldHolder;
+	Bit* _dragBit;
+	BitHolder* _dragHolder;
+	BitHolder* _dropTarget;
+	BitHolder* _oldHolder;
 	bool _dragMoved;
 };

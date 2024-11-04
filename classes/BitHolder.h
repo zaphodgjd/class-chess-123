@@ -3,8 +3,7 @@
 
 class Bit;
 
-class BitHolder : public Sprite
-{
+class BitHolder : public Sprite {
 public:
 	BitHolder() : Sprite() { _bit = nullptr; _gameTag = 0; };
 	~BitHolder();
@@ -52,4 +51,3 @@ protected:
 	Bit		*_bit;
 	int		_gameTag;
 };
-

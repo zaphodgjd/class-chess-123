@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.2.0)
-project(tictactoe VERSION 0.1.0 LANGUAGES C CXX)
+project(Chess VERSION 0.1.0 LANGUAGES C CXX)
 
 # Set the C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -42,31 +42,35 @@ else() # Linux
 endif()
 
 # Define the executable and sources
-add_executable(tictactoe Application.cpp
-                          imgui/imgui_demo.cpp
-                          imgui/imgui_draw.cpp
-                          imgui/imgui_tables.cpp
-                          imgui/imgui_widgets.cpp
-                          imgui/imgui.cpp
-                          imgui/imgui_impl_opengl3.cpp
-                          classes/Bit.cpp
-                          classes/BitHolder.cpp
-                          classes/Game.cpp
-                          classes/Sprite.cpp
-                          classes/Square.cpp
-                          classes/ChessSquare.cpp
-                          classes/Chess.cpp
-                          ${MAIN_FILE}
-                          ${IMPL_FILE}
-                )
+set(SOURCES
+	Application.cpp
+	imgui/imgui_demo.cpp
+	imgui/imgui_draw.cpp
+	imgui/imgui_tables.cpp
+	imgui/imgui_widgets.cpp
+	imgui/imgui.cpp
+	imgui/imgui_impl_opengl3.cpp
+    classes/Bit.cpp
+    classes/BitHolder.cpp
+    classes/ChessSquare.cpp
+    classes/Game.cpp
+    classes/Sprite.cpp
+    classes/Chess.cpp
+    ${MAIN_FILE}
+    ${IMPL_FILE}
+    tools/Logger.cpp
+)
+
+# Define the executable and sources
+add_executable(Chess ${SOURCES})
 
 # Link libraries based on the platform
 if(MACOS OR LINUX)
-    target_link_libraries(tictactoe ${OPENGL_gl_LIBRARY} glfw)
+    target_link_libraries(Chess ${OPENGL_gl_LIBRARY} glfw)
 elseif(WINDOWS)
-    target_link_libraries(tictactoe ${OPENGL_gl_LIBRARY})
+    target_link_libraries(Chess ${OPENGL_gl_LIBRARY})
     if(MINGW)
-        target_link_libraries(tictactoe dwmapi)
+        target_link_libraries(Chess dwmapi)
     endif()
 endif()
 

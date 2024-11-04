@@ -1,16 +1,14 @@
-
 #include "Bit.h"
 #include "BitHolder.h"
+#include <cmath>
 
-Bit::~Bit()
-{
+Bit::~Bit() {
+
 }
 
-BitHolder *Bit::getHolder()
-{
+BitHolder *Bit::getHolder() {
 	// Look for my nearest ancestor that's a BitHolder:
-	for (Entity *layer = getParent(); layer; layer = layer->getParent())
-	{
+	for (Entity *layer = getParent(); layer; layer = layer->getParent()) {
 		if (layer->getEntityType() == EntityBitHolder)
 			return (BitHolder *)layer;
 		else if (layer->getEntityType() == EntityBit)
@@ -19,29 +17,24 @@ BitHolder *Bit::getHolder()
 	return nullptr;
 }
 
-void Bit::setPickedUp(bool up)
-{
-	if (up != _pickedUp)
-	{
+void Bit::setPickedUp(bool up) {
+	if (up != _pickedUp) {
 		float opacity = 0.0f;
 		float scale = 1.0f;
 		float rotation = 0.0f;
 		int z;
 
-		if (up)
-		{
+		if (up) {
 			opacity = kPickedUpOpacity;
 			z = bitz::kPickupUpZ;
 			_restingZ = getLocalZOrder();
 			_restingTransform = getRotation();
 			scale = kPickedUpScale;
 		}
-		else
-		{
+		else {
 			opacity = 1.0f;
 			z = getLocalZOrder(); // _restingZ;
-			if (z == bitz::kPickupUpZ)
-			{
+			if (z == bitz::kPickupUpZ) {
 				z = _restingZ;
 			}
 			rotation = _restingTransform;
@@ -55,28 +48,24 @@ void Bit::setPickedUp(bool up)
 	}
 }
 
-bool Bit::friendly()
-{
+// This is VERY funny, and I will forget this exists
+bool Bit::friendly() {
 	return true;
 }
 
-bool Bit::unfriendly()
-{
+bool Bit::unfriendly() {
 	return !friendly();
 }
 
-bool Bit::getPickedUp()
-{
+bool Bit::getPickedUp() {
 	return _pickedUp;
 }
 
-Player *Bit::getOwner()
-{
+Player *Bit::getOwner() {
 	return _owner;
 }
 
-void Bit::moveTo(const ImVec2 &point)
-{
+void Bit::moveTo(const ImVec2 &point) {
 	_destinationPosition = point;
 	// work out the step so we move same step each update
 	ImVec2 delta = ImVec2(_destinationPosition.x - getPosition().x, _destinationPosition.y - getPosition().y);
@@ -84,21 +73,17 @@ void Bit::moveTo(const ImVec2 &point)
 	_moving = true;
 }
 
-void Bit::update()
-{
-	if (!_moving)
-	{
+void Bit::update() {
+	if (!_moving) {
 		return;
 	}
 	ImVec2 pos = getPosition();
 	ImVec2 delta = ImVec2(_destinationPosition.x - pos.x, _destinationPosition.y - pos.y);
-	if (fabs(delta.x) >= 0.1f || fabs(delta.y) > 0.1f)
-	{
+	if (std::fabs(delta.x) >= 0.1f || std::fabs(delta.y) > 0.1f) {
 		ImVec2 newPosition = ImVec2(pos.x + _destinationStep.x, pos.y + _destinationStep.y);
 		setPosition(newPosition);
 	}
-	else
-	{
+	else {
 		setPosition(_destinationPosition);
 		_moving = false;
 	}

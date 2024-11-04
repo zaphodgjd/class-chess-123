@@ -11,8 +11,7 @@ typedef enum {
 	kTurnFinished           // Turn is confirmed and finished
 } TurnStatus;
 
-class Turn
-{
+class Turn {
 public:
 	Turn() : _game(nullptr), _player(nullptr), _status(kTurnEmpty), _move(""), _boardState(""), _date(0), _comment(""), _score(0), _replaying(false), _gameNumber(-1) {};
 	~Turn() {};
@@ -30,4 +29,3 @@ public:
 	bool		_replaying;
 	int			_gameNumber;
 };
-
