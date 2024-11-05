@@ -1,23 +1,23 @@
 #pragma once
 
 #include "BitHolder.h"
-#include <string>
 
 class ChessSquare : public BitHolder {
 public:
 	ChessSquare() : BitHolder() {
 		_column = 0;
 		_row = 0;
+		_notation = '0'; // init to false
 	}
+
+	void setBit(Bit *bit) override;
 
 	// initialize the holder with a position, color, and a sprite
 	void initHolder(const ImVec2 &position, const char *spriteName, const int column, const int row);
 	bool canDropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 	bool dropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 
-	// 
-	std::string getNotation() { return _notation; }
-	void setNotation(std::string notation) { _notation = notation; }
+	char getNotation() { return _notation; }
 	void setMoveHighlighted(bool highlight);
 
 	// I'm confused by what the point of this is.
@@ -37,5 +37,5 @@ private:
 	}
 	int _column;
 	int _row;
-	std::string _notation;
+	char _notation;
 };

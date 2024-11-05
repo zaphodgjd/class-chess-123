@@ -25,7 +25,8 @@ void BitHolder::setBit(Bit* abit) {
 		if (_bit) {
 			_bit->setParent(this);
 			_bit->setPosition(this->getPosition());
-			Loggy.log(std::to_string(abit->gameTag()) + " placed at (" + std::to_string(abit->getPosition().x) + ", " + std::to_string(abit->getPosition().y) + ")");
+			int tag = abit->gameTag();
+			Loggy.log(std::to_string(tag & 8) + " placed " + std::to_string(tag & 7) + " at (" + std::to_string(abit->getPosition().x) + ", " + std::to_string(abit->getPosition().y) + ")");
 		}
 	}
 }

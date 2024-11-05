@@ -34,6 +34,8 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece) {
 	/*	Sebastian opted to use the 4th and 5th bit to denote if a piece is black or white,
 		but this seems like a bit of an oversight on his part, and it arguably makes more sense
 		in the context of this code to simply use the 4th bit to denote the color of a piece.
+
+		It does invalidate "owner" a fair bit, but this does make chess code specifically a lot easier to work with.
 		*/
 	bit->setGameTag(playerNumber << 3 | piece);
 	bit->setSize(pieceSize, pieceSize);
@@ -100,30 +102,6 @@ bool Chess::checkForDraw() {
 	return false;
 }
 
-// add a helper to Square so it returns out FEN chess notation in the form p for white pawn, K for black king, etc.
-// this version is used from the top level board to record moves
-const char Chess::bitToPieceNotation(int rank, int file) const {
-	if (rank < 0 || file < 0 || rank > _gameOps.X || file > _gameOps.Y) {
-		return '0';
-	}
-
-	// we represent White as uppercase and Black as lower case. 
-	const char* w = { "PNBRQK" };
-	const char* b = { "pnbrqk" };
-	unsigned char notation = '0';
-
-	Bit* bit = _grid[file][rank].bit();
-	if (bit) {
-		// get the actual piece
-		int piece = bit->gameTag() & 7;
-		notation = 8 & bit->gameTag() ? b[piece - 1] : w[piece - 1];
-	} else {
-		notation = '0';
-	}
-
-	return notation;
-}
-
 // state strings
 std::string Chess::initialStateString() {
 	return stateString();
@@ -135,7 +113,7 @@ std::string Chess::stateString() {
 	std::string s;
 	for (int file = 0; file < _gameOps.Y; file++) {
 		for (int rank = 0; rank < _gameOps.X; rank++) {
-			s += bitToPieceNotation(rank, file);
+			s += _grid[file][rank].getNotation();
 		}
 	}
 

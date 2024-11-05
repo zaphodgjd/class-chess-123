@@ -16,7 +16,7 @@ public:
 	Bit *bit() const;
 	Bit *bit();
 	// set the current piece
-	void setBit(Bit *bit);
+	virtual void setBit(Bit *bit);
 	// destroy the current piece, triggering any associated animations
 	void destroyBit();
 	// gametag can be used by games for any purpose
