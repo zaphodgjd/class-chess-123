@@ -32,6 +32,34 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
 
 void Chess::setUpBoard()
 {
+    ChessPiece backRowArray[8] = {Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook};
+    setNumberOfPlayers(2);
+    _gameOptions.rowX = 8;
+    _gameOptions.rowY = 8;
+    for (int x=0; x<8; x++) {
+        for (int y=0; y<8; y++){
+            _grid[x][y].initHolder(ImVec2(50*x +100, 50*y + 100), "square.png", x, y);
+        }
+    }
+    for (int x = 0; x<8; x+=7){
+        for (int y = 0; y<8; y++){
+            Bit *bit = PieceForPlayer((x == 0) ? 1:0, backRowArray[y]);
+            BitHolder& holder = getHolderAt(x,y);
+            bit->setPosition(holder.getPosition());
+            holder.setBit(bit);
+        }
+    }
+    for (int x = 1; x<8; x+=5){
+        for (int y = 0; y<8; y++){
+            Bit *bit = PieceForPlayer((x == 1) ? 1:0, Pawn);
+            BitHolder& holder = getHolderAt(x,y);
+            bit->setPosition(holder.getPosition());
+            holder.setBit(bit);
+        }
+    }
+
+
+    startGame();
 }
 
 //
@@ -45,16 +73,16 @@ bool Chess::actionForEmptyHolder(BitHolder &holder)
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 {
     // you can't move anything in tic tac toe
-    return false;
+    return true;
 }
 
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
 {
-    return false;
+    return true;
 }
 
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
-    
+    endTurn();
 }
 
 //

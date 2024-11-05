@@ -30,7 +30,7 @@ public:
         }
     }
     // release the sprite from the list being drawn if count has reached zero
-    void release() { _retainCount--; if (_retainCount <= 0) removeFromParentAndCleanup(true); }
+    void release() { _retainCount--; if (_retainCount <= 0) removeFromParentAndCleanup(false); }
     // release the sprite from the list being drawn
     void retain() { _retainCount++;}
 
