@@ -66,7 +66,6 @@ bool Chess::actionForEmptyHolder(BitHolder &holder)
 
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 {
-    // you can't move anything in tic tac toe
     return true;
 }
 
