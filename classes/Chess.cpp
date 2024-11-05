@@ -32,6 +32,28 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
 
 void Chess::setUpBoard()
 {
+    setNumberOfPlayers(2);
+    _gameOptions.rowX = 8;
+    _gameOptions.rowY = 8;
+    //
+    // we want white to be at the bottom of the screen so we need to reverse the board
+    //
+    char piece[2];
+    piece[1] = 0;
+    for (int y = 0; y < _gameOptions.rowY; y++) {
+        for (int x = 0; x < _gameOptions.rowX; x++) {
+            ImVec2 position((float)(pieceSize * x + pieceSize), (float)(pieceSize * (_gameOptions.rowY - y) + pieceSize));
+            _grid[y][x].initHolder(position, "boardsquare.png", x, y);
+            _grid[y][x].setGameTag(0);
+            piece[0] = bitToPieceNotation(y,x);
+            _grid[y][x].setNotation(piece);
+        }
+    }
+    Bit* bit = PieceForPlayer(0, King);
+    bit->setPosition(_grid[4][4].getPosition());
+    bit->setParent(&_grid[4][4]);
+    bit->setGameTag(King);
+    _grid[0][0].setBit(bit);
 }
 
 //
@@ -45,16 +67,16 @@ bool Chess::actionForEmptyHolder(BitHolder &holder)
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 {
     // you can't move anything in tic tac toe
-    return false;
+    return true;
 }
 
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
 {
-    return false;
+    return true;
 }
 
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
-    
+
 }
 
 //
