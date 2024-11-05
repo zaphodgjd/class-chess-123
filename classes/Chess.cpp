@@ -50,11 +50,13 @@ void Chess::setUpBoard() {
 	setNumberOfPlayers(2);
 
 	// It upsets me greatly that, as far as I can tell, a double loop is unfortunately required.
-	for (int y = _gameOps.Y - 1; y >= 0; y--) {
-		for (int x = 0; x < _gameOps.X; x++) {
+	for (int file = _gameOps.Y - 1; file >= 0; file--) {
+		for (int rank = 0; rank < _gameOps.X; rank++) {
 			// Unfortunately the _gameOps.Y - y part is neccesary to get this to display properly.
-			_grid[y * 8 + x].initHolder((ImVec2(x * 64 + 50, (_gameOps.Y - y) * 64 + 50)),
-									"square.png", x, y);
+			_grid[file][rank].initHolder((ImVec2(rank * 64 + 50, (_gameOps.Y - file) * 64 + 50)),
+									"square.png", rank, file);
+			// game tag init to 0
+			// notation is set later.
 		}
 	}
 
@@ -64,7 +66,7 @@ void Chess::setUpBoard() {
 
 	// Seems like a good idea to start the game using Fen notation, so I can easily try different states for testing.
 	setStateFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-	startGame();
+	//startGame();
 }
 
 bool Chess::actionForEmptyHolder(BitHolder &holder) {
@@ -72,11 +74,11 @@ bool Chess::actionForEmptyHolder(BitHolder &holder) {
 }
 
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src) {
-	return false;
+	return true;
 }
 
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) {
-	return false;
+	return true;
 }
 
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
@@ -101,11 +103,7 @@ bool Chess::checkForDraw() {
 // add a helper to Square so it returns out FEN chess notation in the form p for white pawn, K for black king, etc.
 // this version is used from the top level board to record moves
 const char Chess::bitToPieceNotation(int rank, int file) const {
-	return bitToPieceNotation(rank * 8 + file);
-}
-
-const char Chess::bitToPieceNotation(int i) const {
-	if (i < 0 || i > _gameOps.size) {
+	if (rank < 0 || file < 0 || rank > _gameOps.X || file > _gameOps.Y) {
 		return '0';
 	}
 
@@ -114,7 +112,7 @@ const char Chess::bitToPieceNotation(int i) const {
 	const char* b = { "pnbrqk" };
 	unsigned char notation = '0';
 
-	Bit* bit = _grid[i].bit();
+	Bit* bit = _grid[file][rank].bit();
 	if (bit) {
 		// get the actual piece
 		int piece = bit->gameTag() & 7;
@@ -135,8 +133,10 @@ std::string Chess::initialStateString() {
 // we will read the state string and store it in each turn object
 std::string Chess::stateString() {
 	std::string s;
-	for (int i = 0; i < _gameOps.size; i++) {
-		s += bitToPieceNotation(i);
+	for (int file = 0; file < _gameOps.Y; file++) {
+		for (int rank = 0; rank < _gameOps.X; rank++) {
+			s += bitToPieceNotation(rank, file);
+		}
 	}
 
 	return s;
@@ -145,33 +145,34 @@ std::string Chess::stateString() {
 // this still needs to be tied into imguis init and shutdown
 // when the program starts it will load the current game from the imgui ini file and set the game state to the last saved state
 void Chess::setStateString(const std::string &s) {
-	for (int i = 0; i < _gameOps.size; i++) {
-		if (s[i] == '0') continue; // checking here to avoid overhead downstream.
-		_grid[i].setBit(PieceForPlayer(s[i]));
+	for (int file = 0; file < _gameOps.Y; file++) {
+		for (int rank = 0; rank < _gameOps.X; rank++) {
+			if (s[file * 8 + rank] == '0') continue; // checking here to avoid overhead downstream.
+			_grid[file][rank].setBit(PieceForPlayer(s[file * 8 + rank]));
+		}
 	}
 	// BitHolders are init'd with a null ref on bit, so there's no point in setting that unless neccesary.
 }
 
 // lifted from Sebastian Lague's Coding Adventure on Chess. 2:37
 void Chess::setStateFromFen(const std::string &fen) {
-
-	int file = 0, rank = 7;
+	int file = 7, rank = 0;
 	for (const char symbol : fen) {
 		if (symbol == '/') {
-			file = 0;
-			rank--;
+			rank = 0;
+			file--;
 		} else {
 			// this is for the gap syntax.
 			if (std::isdigit(symbol)) {
-				file += symbol - '0';
+				rank += symbol - '0';
 			} else { // there is a piece here
 				// b/c white is considered as "0" elsewhere in the code, it makes
 				// more sense to specifically check ifBlack, even if FEN has it the
 				// other way around.
 				int isBlack = !std::isupper(symbol);
 				ChessPiece piece = pieceFromSymbol.at(std::tolower(symbol));
-				_grid[rank * 8 + file].setBit(PieceForPlayer(isBlack, piece));
-				file++;
+				_grid[file][rank].setBit(PieceForPlayer(isBlack, piece));
+				rank++;
 			}
 		}
 	}

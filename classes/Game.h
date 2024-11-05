@@ -104,7 +104,6 @@ public:
 	void scanForMouse();
 	// function to return pointer to the [][] array of bitholders
 	virtual BitHolder& getHolderAt(const int x, const int y) = 0;
-	virtual BitHolder& getHolderAt(const int i) = 0;
 
 	const unsigned int getCurrentTurnNo() { return _gameOps.currentTurnNo; };
 	const int getScore() { return _gameOps.score; };

@@ -115,15 +115,12 @@ void Game::scanForMouse() {
 			Bit *bit = holder.bit();
 			if (bit && bit->isMouseOver(mousePos)) {
 				entity = bit;
-				if (ImGui::IsMouseClicked(0) && entity)
-				{
+				if (ImGui::IsMouseClicked(0) && entity) {
 					mouseDown(mousePos, entity);
-				} else if (ImGui::IsMouseReleased(0))
-				{
+				} else if (ImGui::IsMouseReleased(0)) {
 					mouseUp(mousePos, entity);
 				}
-				else
-				{
+				else {
 					mouseMoved(mousePos, entity);
 				}
 			}

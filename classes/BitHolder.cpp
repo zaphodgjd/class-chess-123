@@ -22,8 +22,7 @@ void BitHolder::setBit(Bit* abit) {
 	if (abit != (void *)bit()) {
 		destroyBit();
 		_bit = abit;
-		if (_bit)
-		{
+		if (_bit) {
 			_bit->setParent(this);
 			_bit->setPosition(this->getPosition());
 			Loggy.log(std::to_string(abit->gameTag()) + " placed at (" + std::to_string(abit->getPosition().x) + ", " + std::to_string(abit->getPosition().y) + ")");
@@ -62,7 +61,8 @@ void BitHolder::willNotDropBit(Bit *bit) {
 }
 
 bool BitHolder::dropBitAtPoint(Bit *bit, const ImVec2 &point) {
-	return false;
+	setBit (bit);
+	return true;
 }
 
 void BitHolder::initHolder(const ImVec2 &position, const ImVec4 &color, const char *spriteName) {

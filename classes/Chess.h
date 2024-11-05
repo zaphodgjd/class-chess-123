@@ -35,8 +35,7 @@ public:
 	void		bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
 
 	void		stopGame() override;
-	BitHolder&	getHolderAt(const int x, const int y) override { return _grid[y * 8 + x]; }
-    BitHolder&	getHolderAt(const int i) override { return _grid[i]; }
+	BitHolder&	getHolderAt(const int x, const int y) override { return _grid[y][x]; }
 
 	void		updateAI() override;
 	bool		gameHasAI() override { return true; }
@@ -47,7 +46,7 @@ private:
 	const char	bitToPieceNotation(int rank, int file) const;
     const char	bitToPieceNotation(int i) const;
 
-	ChessSquare	_grid[64];
+	ChessSquare	_grid[8][8];
 };
 
 // https://www.chessprogramming.org/Bitboards
