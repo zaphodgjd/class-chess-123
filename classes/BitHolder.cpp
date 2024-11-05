@@ -13,7 +13,6 @@ Bit* BitHolder::bit() const {
 
 Bit* BitHolder::bit() {
 	if (_bit && _bit->getParent() != this && !_bit->getPickedUp()) {
-		_bit->release();
 		_bit = nullptr;
 	}
 	return _bit;
@@ -21,12 +20,10 @@ Bit* BitHolder::bit() {
 
 void BitHolder::setBit(Bit* abit) {
 	if (abit != (void *)bit()) {
-		if (_bit) {
-			_bit->release();
-		}
+		destroyBit();
 		_bit = abit;
-		if (_bit) {
-			_bit->retain();
+		if (_bit)
+		{
 			_bit->setParent(this);
 			_bit->setPosition(this->getPosition());
 			Loggy.log(std::to_string(abit->gameTag()) + " placed at (" + std::to_string(abit->getPosition().x) + ", " + std::to_string(abit->getPosition().y) + ")");
@@ -36,27 +33,27 @@ void BitHolder::setBit(Bit* abit) {
 
 void BitHolder::destroyBit() {
 	if (_bit) {
-		_bit->release();
+		delete _bit;
 		_bit = nullptr;
 	}
 }
 
-Bit* BitHolder::canDragBit(Bit *bit) {
+Bit* BitHolder::canDragBit(Bit* bit) {
 	if (bit->getParent() == this && bit->friendly()) {
 		return bit;
 	}
 	return nullptr;
 }
 
-void BitHolder::cancelDragBit(Bit *bit) {
-
+void BitHolder::cancelDragBit(Bit* bit) {
+	setBit(bit);
 }
 
-void BitHolder::draggedBitTo(Bit *bit, BitHolder *dst) { 
-	setBit( nullptr );
+void BitHolder::draggedBitTo(Bit* bit, BitHolder* dst) {
+	setBit(nullptr);
 }
 
-bool BitHolder::canDropBitAtPoint(Bit *bit, const ImVec2& point) {
+bool BitHolder::canDropBitAtPoint(Bit* bit, const ImVec2& point) {
 	return true;
 }
 
@@ -64,9 +61,8 @@ void BitHolder::willNotDropBit(Bit *bit) {
 
 }
 
-bool BitHolder::dropBitAtPoint(Bit *bit, const ImVec2& point) {
-	setBit( bit );
-	return true;
+bool BitHolder::dropBitAtPoint(Bit *bit, const ImVec2 &point) {
+	return false;
 }
 
 void BitHolder::initHolder(const ImVec2 &position, const ImVec4 &color, const char *spriteName) {

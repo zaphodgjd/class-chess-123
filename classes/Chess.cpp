@@ -54,7 +54,7 @@ void Chess::setUpBoard() {
 		for (int x = 0; x < _gameOps.X; x++) {
 			// Unfortunately the _gameOps.Y - y part is neccesary to get this to display properly.
 			_grid[y * 8 + x].initHolder((ImVec2(x * 64 + 50, (_gameOps.Y - y) * 64 + 50)),
-										"square.png", x, y);
+									"square.png", x, y);
 		}
 	}
 
