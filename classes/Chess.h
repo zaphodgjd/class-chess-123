@@ -1,6 +1,7 @@
 #pragma once
 #include "Game.h"
 #include "ChessSquare.h"
+#include <vector>
 
 const int pieceSize = 64;
 
@@ -34,11 +35,13 @@ public:
 	bool		canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) override;
 	void		bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
 
+	std::vector<std::pair<int, int>> moveGenerator() const;
+
 	void		stopGame() override;
-	BitHolder&	getHolderAt(const int x, const int y) override { return _grid[y][x]; }
+	BitHolder&	getHolderAt(const int x, const int y) override { return _grid[y * 8 + x]; }
 
 	void		updateAI() override;
-	bool		gameHasAI() override { return true; }
+	bool		gameHasAI() override { return false; }
 
 private:
 	Bit* 		PieceForPlayer(const int playerNumber, ChessPiece piece);
@@ -46,7 +49,10 @@ private:
 	const char	bitToPieceNotation(int rank, int file) const;
     const char	bitToPieceNotation(int i) const;
 
-	ChessSquare	_grid[8][8];
+	// distances at a given position to the board's boundries. North, East, South, West, NW, NE, SE, SW.
+	int dist[64][8];
+	ChessSquare	_grid[64];
+	std::vector<ChessSquare> pieces;
 };
 
 // https://www.chessprogramming.org/Bitboards

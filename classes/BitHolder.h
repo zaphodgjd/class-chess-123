@@ -1,6 +1,7 @@
 #pragma once
 #include "Sprite.h"
 #include "Bit.h"
+#include "Player.h"
 
 class BitHolder : public Sprite {
 public:
@@ -29,7 +30,7 @@ public:
 	// can you drag this bit from this holder? if not, return a different bit to drag instead, or nullptr if not allowed
 	// cancelDragBit or draggedBitTo must be called next
 	// an example of this would be return the bit if it can move to a different holder, or nullptr if it can't move at all
-	virtual Bit *canDragBit(Bit *bit);
+	virtual Bit *canDragBit(Bit *bit, Player* player);
 
 	// can this piece be moved here? if not, return false
 	// either willNotDropBit or dropBitAtPoint must be called next
@@ -52,8 +53,7 @@ public:
 	virtual void initHolder(const ImVec2 &position, const ImVec4 &color, const char *spriteName);
 
 	// can be overriden by subclasses
-	virtual bool isMouseOver(const ImVec2 &mousePos)
-	{
+	virtual bool isMouseOver(const ImVec2 &mousePos) {
 		return Sprite::isMouseOver(mousePos);
 	};
 

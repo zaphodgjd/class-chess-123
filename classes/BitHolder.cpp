@@ -12,7 +12,7 @@ Bit* BitHolder::bit() const {
 }
 
 Bit* BitHolder::bit() {
-	if (_bit && _bit->getParent() != this && !_bit->getPickedUp()) {
+	if (_bit && _bit->getParent() != this && !_bit->isPickedUp()) {
 		_bit = nullptr;
 	}
 	return _bit;
@@ -26,7 +26,7 @@ void BitHolder::setBit(Bit* abit) {
 			_bit->setParent(this);
 			_bit->setPosition(this->getPosition());
 			int tag = abit->gameTag();
-			Loggy.log(std::to_string(tag & 8) + " placed " + std::to_string(tag & 7) + " at (" + std::to_string(abit->getPosition().x) + ", " + std::to_string(abit->getPosition().y) + ")");
+			Loggy.log(std::to_string((tag & 8) >> 3) + " placed " + std::to_string(tag & 7) + " at (" + std::to_string(abit->getPosition().x) + ", " + std::to_string(abit->getPosition().y) + ")");
 		}
 	}
 }
@@ -38,8 +38,8 @@ void BitHolder::destroyBit() {
 	}
 }
 
-Bit* BitHolder::canDragBit(Bit* bit) {
-	if (bit->getParent() == this && bit->friendly()) {
+Bit* BitHolder::canDragBit(Bit* bit, Player* player) {
+	if (bit->getParent() == this && bit->friendly(player)) {
 		return bit;
 	}
 	return nullptr;

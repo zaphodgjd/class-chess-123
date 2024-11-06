@@ -38,4 +38,5 @@ private:
 	int _column;
 	int _row;
 	char _notation;
+	//Sprite _indicator;
 };

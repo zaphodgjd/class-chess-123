@@ -16,6 +16,9 @@ std::string formatCords(const int a, const int b) {
 }
 
 void ChessSquare::setBit(Bit* abit) {
+	if (_bit && abit) {
+		Loggy.log(Logger::WARNING, std::to_string((abit->gameTag() & 8) >> 3) + "'s " + std::to_string(abit->gameTag() & 7) + " takes " + std::to_string((_bit->gameTag() & 8) >> 3) + "'s " + std::to_string(_bit->gameTag() & 7));
+	}
 	BitHolder::setBit(abit);
 
 	unsigned char notation = '0';
@@ -45,10 +48,9 @@ bool ChessSquare::canDropBitAtPoint(Bit *newbit, const ImVec2 &point) {
 	if (bit() == nullptr) {
 		return true;
 	}
-	//
+
 	// xor the gametags to see if we have opposing colors
-	//
-	if ((bit()->gameTag() ^ newbit->gameTag()) >= 128) {
+	if (((bit()->gameTag() & 8) ^ (newbit->gameTag() & 8)) >= 8) {
 		return true;
 	}
 	return false;
@@ -62,7 +64,7 @@ bool ChessSquare::dropBitAtPoint(Bit *newbit, const ImVec2 &point) {
 		return true;
 	}
 	// we're taking a piece!
-	if ((bit()->gameTag() ^ newbit->gameTag()) >= 128) {
+	if ((bit()->gameTag() ^ newbit->gameTag()) >= 8) {
 		setBit(newbit);
 		newbit->setParent(this);
 		newbit->moveTo(getPosition());

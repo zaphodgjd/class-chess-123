@@ -4,6 +4,7 @@
 #include "Turn.h"
 #include "../Application.h"
 #include <cmath>
+#include "../tools/Logger.h"
 
 Game::Game() {
 	_gameOps.AIPlayer = false;
@@ -82,6 +83,7 @@ void Game::startGame() {
 }
 
 void Game::endTurn() {
+	Loggy.log(Logger::WARNING, "Turn end.");
 	_gameOps.currentTurnNo++;
 	std::string startState = stateString();
 	Turn *turn = new Turn;
@@ -93,10 +95,7 @@ void Game::endTurn() {
 	ClassGame::EndOfTurn();
 }
 
-// scan for mouse is temporarily in the actual game class
-// this will be moved to a higher up class when the squares have a heirarchy
-// we want the event loop to be elsewhere and calling this class, not called by this class
-// but this is fine for tic-tac-toe
+// INPUT DETECTION
 void Game::scanForMouse() {
 	if (gameHasAI() && getCurrentPlayer() && getCurrentPlayer()->isAIPlayer()) {
 		return;
@@ -115,9 +114,9 @@ void Game::scanForMouse() {
 			Bit *bit = holder.bit();
 			if (bit && bit->isMouseOver(mousePos)) {
 				entity = bit;
-				if (ImGui::IsMouseClicked(0) && entity) {
+				if (ImGui::IsMouseClicked(0) && entity) { // on click
 					mouseDown(mousePos, entity);
-				} else if (ImGui::IsMouseReleased(0)) {
+				} else if (ImGui::IsMouseReleased(0)) { // on release
 					mouseUp(mousePos, entity);
 				}
 				else {
@@ -169,7 +168,7 @@ void Game::drawFrame() {
 	for (int y = 0; y < _gameOps.Y; y++) {
 		for (int x = 0; x < _gameOps.X; x++) {
 			BitHolder &holder = getHolderAt(x, y);
-			if (holder.bit() && !holder.bit()->getPickedUp() && !holder.bit()->getMoving()) {
+			if (holder.bit() && !holder.bit()->isPickedUp() && !holder.bit()->getMoving()) {
 				holder.bit()->paintSprite();
 			}
 		}
@@ -179,7 +178,7 @@ void Game::drawFrame() {
 	for (int y = 0; y < _gameOps.Y; y++) {
 		for (int x = 0; x < _gameOps.X; x++) {
 			BitHolder &holder = getHolderAt(x, y);
-			if (holder.bit() && holder.bit()->getMoving() && !holder.bit()->getPickedUp()) {
+			if (holder.bit() && holder.bit()->getMoving() && !holder.bit()->isPickedUp()) {
 				holder.bit()->update();
 				holder.bit()->paintSprite();
 			}
@@ -190,7 +189,7 @@ void Game::drawFrame() {
 	for (int y = 0; y < _gameOps.Y; y++) {
 		for (int x = 0; x < _gameOps.X; x++) {
 			BitHolder &holder = getHolderAt(x, y);
-			if (holder.bit() && holder.bit()->getPickedUp()) {
+			if (holder.bit() && holder.bit()->isPickedUp()) {
 				holder.bit()->paintSprite();
 			}
 		}
@@ -198,6 +197,10 @@ void Game::drawFrame() {
 }
 
 void Game::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
+	// scoring + captures...
+
+	// etc...
+
 	endTurn();
 }
 
@@ -232,9 +235,11 @@ void Game::mouseDown(ImVec2 &location, Entity *entity) {
 		_dragBit = (Bit *)entity;
 	}
 
+	// If we are not currently dragging a bit...
 	if (!_dragBit) {
 		if (entity && entity->getEntityType() == Entity::EntityBitHolder) {
 			BitHolder *holder = (BitHolder *)entity;
+			// Are we clicking over a holder?
 			if (holder) {
 				_dragBit = bitToPlaceInHolder(*holder);
 				if (_dragBit) {
@@ -246,6 +251,7 @@ void Game::mouseDown(ImVec2 &location, Entity *entity) {
 		}
 	}
 
+	// No bit was found...
 	if (!_dragBit) {
 		return;
 	}
@@ -256,7 +262,7 @@ void Game::mouseDown(ImVec2 &location, Entity *entity) {
 	_oldHolder = _dragBit->getHolder();
 	// Ask holder's and game's permission before dragging:
 	if (_oldHolder) {
-		_dragBit = _oldHolder->canDragBit(_dragBit);
+		_dragBit = _oldHolder->canDragBit(_dragBit, getCurrentPlayer());
 		if (_dragBit && !(canBitMoveFrom(*_dragBit, *_oldHolder))) {
 			_oldHolder->cancelDragBit(_dragBit);
 			_dragBit = nullptr;
@@ -309,6 +315,7 @@ void Game::mouseUp(ImVec2 &location, Entity *entity) {
 		}
 	}
 
+	// if we are dragging a bit
 	if (_dragBit) {
 		if (_dragMoved) {
 			// Update the drag tracking to the final mouse position:
@@ -330,6 +337,7 @@ void Game::mouseUp(ImVec2 &location, Entity *entity) {
 				_dragBit->setPosition(_dropTarget->getPosition()); // don't animate
 				if (_oldHolder)
 					_oldHolder->draggedBitTo(_dragBit, _dropTarget);
+				// I'm pretty sure _oldHolder will always be null here.
 				bitMovedFromTo(*_dragBit, *_oldHolder, *_dropTarget);
 			}
 			else {
@@ -338,8 +346,7 @@ void Game::mouseUp(ImVec2 &location, Entity *entity) {
 					_dropTarget->willNotDropBit(_dragBit);
 				_dragBit->moveTo(_oldPos);
 			}
-		}
-		else {
+		} else {
 			// Just a click, without a drag:
 			if (_dropTarget)
 				_dropTarget->setHighlighted(false);

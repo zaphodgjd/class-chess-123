@@ -29,19 +29,19 @@ public:
 	~Bit();
 
 	// helper functions
-	bool getPickedUp();
+	bool isPickedUp();
 	void setPickedUp(bool yes);
 
 	// am I in a holder? nullptr if I'm not.
 	BitHolder *getHolder();
 	// which player owns me
 	Player *getOwner();
-	void setOwner(Player *player) { _owner = player; };
+	void setOwner(Player* player) { _owner = player; };
 	// helper functions
-	bool friendly();
-	bool unfriendly();
+	bool friendly(const Bit* other) const { return other->_owner == this->_owner; }
+	bool friendly(const Player* player) const { return this->_owner == player; }
 	// game defined game tags
-	const int gameTag() { return _gameTag; };
+	int gameTag() const { return _gameTag; };
 	void setGameTag(int tag) { _gameTag = tag; };
 	// move to a position
 	void moveTo(const ImVec2 &point);

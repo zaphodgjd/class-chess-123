@@ -48,16 +48,7 @@ void Bit::setPickedUp(bool up) {
 	}
 }
 
-// This is VERY funny, and I will forget this exists
-bool Bit::friendly() {
-	return true;
-}
-
-bool Bit::unfriendly() {
-	return !friendly();
-}
-
-bool Bit::getPickedUp() {
+bool Bit::isPickedUp() {
 	return _pickedUp;
 }
 

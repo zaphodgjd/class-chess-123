@@ -130,8 +130,11 @@ public:
 	GameOptions _gameOps;
 
 protected:
+	// What to do when the mouse is clicked.
 	void mouseDown(ImVec2 &location, Entity *bit);
+	// What to do when the mouse is moved.
 	void mouseMoved(ImVec2 &location, Entity *bit);
+	// What to do when the mouse is released.
 	void mouseUp(ImVec2 &location, Entity *bit);
 	void findDropTarget(ImVec2 &pos);
 
