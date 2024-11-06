@@ -6,7 +6,12 @@ class Bit;
 class BitHolder : public Sprite
 {
 public:
-	BitHolder() : Sprite() { _bit = nullptr; _gameTag = 0; };
+	BitHolder() : Sprite()
+	{
+		_bit = nullptr;
+		_gameTag = 0;
+		_entityType = EntityBitHolder;
+	};
 	~BitHolder();
 
 	// current piece or nullptr if empty
@@ -17,7 +22,7 @@ public:
 	// destroy the current piece, triggering any associated animations
 	void	destroyBit();
 	// gametag can be used by games for any purpose
-	int		gameTag() { return _gameTag; };
+	const int		gameTag() { return _gameTag; };
 	// set the gametag
 	void	setGameTag(int tag) { _gameTag = tag; };
 	// convenience function to see if the holder is empty
@@ -47,6 +52,13 @@ public:
 
 	// initialize the holder with a position, color, and a sprite
 	virtual void	initHolder(const ImVec2 &position, const ImVec4 &color, const char *spriteName);
+
+	virtual bool isMouseOver(const ImVec2 &mousePos)
+	{
+		return Sprite::isMouseOver(mousePos);
+	};
+	virtual int getColumn() { return 0; };
+    virtual int getRow() { return 0; };
 
 protected:
 	Bit		*_bit;

@@ -8,30 +8,32 @@ BitHolder::~BitHolder()
 //
 // const version checks for bit without picking it up from the holder
 //
-Bit* BitHolder::bit() const
+Bit *BitHolder::bit() const
 {
 	return _bit;
 }
 
-Bit* BitHolder::bit()
+Bit *BitHolder::bit()
 {
 	if (_bit && _bit->getParent() != this && !_bit->getPickedUp())
 	{
-		_bit->release();
 		_bit = nullptr;
 	}
 	return _bit;
 }
 
-void BitHolder::setBit(Bit* abit)
+void BitHolder::setBit(Bit *abit)
 {
-	if (abit != (void *)bit()) {
-		if (_bit) {
-			_bit->release();
+	if (abit != (void *)bit())
+	{
+		if (_bit)
+		{
+			delete _bit;
+			_bit = nullptr;
 		}
 		_bit = abit;
-		if (_bit) {
-			_bit->retain();
+		if (_bit)
+		{
 			_bit->setParent(this);
 		}
 	}
@@ -39,13 +41,13 @@ void BitHolder::setBit(Bit* abit)
 
 void BitHolder::destroyBit()
 {
-	if (_bit) {
-		_bit->release();
+	if (_bit){
+		delete _bit;
 		_bit = nullptr;
 	}
 }
 
-Bit* BitHolder::canDragBit(Bit *bit)
+Bit *BitHolder::canDragBit(Bit *bit)
 {
 	if (bit->getParent() == this && bit->friendly()) {
 		return bit;
@@ -55,6 +57,7 @@ Bit* BitHolder::canDragBit(Bit *bit)
 
 void BitHolder::cancelDragBit(Bit *bit)
 {
+	setBit(bit);
 }
 
 void BitHolder::draggedBitTo(Bit *bit, BitHolder *dst)
@@ -62,7 +65,7 @@ void BitHolder::draggedBitTo(Bit *bit, BitHolder *dst)
 	setBit( nullptr );
 }
 
-bool BitHolder::canDropBitAtPoint(Bit *bit, const ImVec2& point)
+bool BitHolder::canDropBitAtPoint(Bit *bit, const ImVec2 &point)
 {
 	return true;
 }
@@ -71,10 +74,9 @@ void BitHolder::willNotDropBit(Bit *bit)
 {
 }
 
-bool BitHolder::dropBitAtPoint(Bit *bit, const ImVec2& point)
+bool BitHolder::dropBitAtPoint(Bit *bit, const ImVec2 &point)
 {
-	setBit( bit );
-	return true;
+	return false;
 }
 
 void BitHolder::initHolder(const ImVec2 &position, const ImVec4 &color, const char *spriteName)

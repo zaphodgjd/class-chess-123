@@ -21,7 +21,7 @@ bool ChessSquare::canDropBitAtPoint(Bit *newbit, const ImVec2 &point)
     //
     // xor the gametags to see if we have opposing colors
     //
-    if (/*(bit()->gameTag() ^ newbit->gameTag()) >= 128*/true)
+    if ((bit()->gameTag() ^ newbit->gameTag()) >= 128)
     {
         return true;
     }
@@ -38,7 +38,7 @@ bool ChessSquare::dropBitAtPoint(Bit *newbit, const ImVec2 &point)
         return true;
     }
     // we're taking a piece!
-    if (/*(bit()->gameTag() ^ newbit->gameTag()) >= 128*/true){
+    if ((bit()->gameTag() ^ newbit->gameTag()) >= 128){
         setBit(newbit);
         newbit->setParent(this);
         newbit->moveTo(getPosition());
@@ -56,4 +56,10 @@ void ChessSquare::setMoveHighlighted(bool highlighted)
         _color = odd ? ImVec4(0.48, 0.58, 0.36, 1.0) : ImVec4(0.93, 0.93, 0.84, 1.0);
         _color = Lerp(_color, ImVec4(0.75, 0.79, 0.30, 1.0), 0.75);
     }
+}
+int ChessSquare::getColumn() {
+    return _column;
+}
+int ChessSquare::getRow() {
+    return _row;
 }

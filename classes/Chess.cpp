@@ -1,5 +1,6 @@
 #include "Chess.h"
 
+
 const int AI_PLAYER = 1;
 const int HUMAN_PLAYER = -1;
 
@@ -46,6 +47,7 @@ void Chess::setUpBoard()
             Bit *bit = PieceForPlayer((x == 0) ? 1:0, backRowArray[y]);
             BitHolder& holder = getHolderAt(x,y);
             bit->setPosition(holder.getPosition());
+            bit->setGameTag((x==0) ? backRowArray[y]: backRowArray[y] + 128);
             holder.setBit(bit);
         }
     }
@@ -54,6 +56,7 @@ void Chess::setUpBoard()
             Bit *bit = PieceForPlayer((x == 1) ? 1:0, Pawn);
             BitHolder& holder = getHolderAt(x,y);
             bit->setPosition(holder.getPosition());
+            bit->setGameTag((x==1) ? Pawn: Pawn + 128);
             holder.setBit(bit);
         }
     }
@@ -78,7 +81,15 @@ bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
 {
-    return true;
+    ChessPiece ChessPieceArray[7] = {NoPiece, Pawn, Knight, Bishop, Rook, Queen, King};
+    int color = bit.gameTag() % 128; //0 == white 1 == Black
+    ChessPiece piece = ChessPieceArray[bit.gameTag() % 8];
+    std::vector<int> possibleMoves = generateMoves(((src.getRow()*8) + src.getColumn()), stateString());
+    if (std::count(possibleMoves.begin(), possibleMoves.end(), (((dst.getRow() * 8 ) + dst.getColumn()))) >= 1){
+        return true;
+    }
+        
+    return false;
 }
 
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
@@ -142,7 +153,7 @@ std::string Chess::stateString()
     std::string s;
     for (int y = 0; y < _gameOptions.rowY; y++) {
         for (int x = 0; x < _gameOptions.rowX; x++) {
-            s += bitToPieceNotation(y, x);
+            s += bitToPieceNotation(x, y);
         }
     }
     return s;

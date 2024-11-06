@@ -14,6 +14,7 @@ enum ChessPiece {
     King
 };
 
+
 //
 // the main game class
 //

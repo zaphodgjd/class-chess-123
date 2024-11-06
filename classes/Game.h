@@ -21,6 +21,7 @@
 #include "Turn.h"
 #include "Bit.h"
 #include "BitHolder.h"
+#include "GenMoves.h"
 
 class GameTable;
 

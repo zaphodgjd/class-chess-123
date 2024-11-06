@@ -12,7 +12,7 @@ public:
         EntityBitHolder
     };
 
-    Entity() : _entityType(EntityNone), _parent(nullptr), _retainCount(0) {};
+    Entity() : _entityType(EntityNone), _parent(nullptr){};
     Entity(EntityType type) : _entityType(type) {};
 
     EntityType getEntityType() {return _entityType; }
@@ -23,20 +23,12 @@ public:
     Entity *getParent() { return _parent; }
 
     // final cleanup of the entity
-    void removeFromParentAndCleanup(bool cleanup) {
+    void removeFromParentAndCleanup() {
         _parent = nullptr; 
-        if (cleanup) {
-            delete this; 
-        }
     }
     // release the sprite from the list being drawn if count has reached zero
-    void release() { _retainCount--; if (_retainCount <= 0) removeFromParentAndCleanup(false); }
-    // release the sprite from the list being drawn
-    void retain() { _retainCount++;}
 
 protected:
     EntityType _entityType;
     Entity *_parent;
-    // set the retain count
-    int _retainCount;
 };

@@ -26,8 +26,8 @@ public:
         int rowDistance = abs(_row - other._row);
         return columnDistance > rowDistance ? columnDistance : rowDistance;
     }
-    int getColumn() { return _column; }
-    int getRow() { return _row; }
+    int getColumn()  override;
+    int getRow()  override;
     int getSquareIndex() { return _row * 8 + _column; }
 
 private:
