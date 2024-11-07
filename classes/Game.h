@@ -61,7 +61,7 @@ public:
 
 	// /** Should return true if it is legal for the given Bit to move from src to dst.
 	// Default implementation always returns true.
-	virtual bool canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {return true;};
+	virtual bool canBitMoveFromTo(Bit &bit, BitHolder &src, BitHolder &dst, Player* player) {return true;};
 
 	// can we do something with an empty holder?  do it here
 	virtual bool actionForEmptyHolder(BitHolder &holder);

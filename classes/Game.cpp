@@ -169,7 +169,7 @@ void Game::findDropTarget(ImVec2 &pos)
 					_dropTarget->setHighlighted(false);
 					_dropTarget = nullptr;
 				}
-				if (holder.canDropBitAtPoint(_dragBit, pos) && canBitMoveFromTo(*_dragBit, *_oldHolder, holder))
+				if (holder.canDropBitAtPoint(_dragBit, pos) && canBitMoveFromTo(*_dragBit, *_oldHolder, holder, getCurrentPlayer()))
 				{
 					_dropTarget = &holder;
 					_dropTarget->setHighlighted(true);

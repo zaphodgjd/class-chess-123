@@ -79,10 +79,12 @@ bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
     return true;
 }
 
-bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
+bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst, Player* player)
 {
     ChessPiece ChessPieceArray[7] = {NoPiece, Pawn, Knight, Bishop, Rook, Queen, King};
-    int color = bit.gameTag() % 128; //0 == white 1 == Black
+    if (player->playerNumber() != bit.getOwner()->playerNumber()){
+        return false;
+    }
     ChessPiece piece = ChessPieceArray[bit.gameTag() % 8];
     std::vector<int> possibleMoves = generateMoves(((src.getRow()*8) + src.getColumn()), stateString());
     if (std::count(possibleMoves.begin(), possibleMoves.end(), (((dst.getRow() * 8 ) + dst.getColumn()))) >= 1){

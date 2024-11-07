@@ -7,10 +7,33 @@ std::vector<int>  pawnMoves(int position, std::string boardState, int color){
 	std::vector<int> moves;
 	char piece = boardState[position];
 	if (piece == *"P"){
-		moves.push_back(position+=8);
+		if (boardState[position + 8] == *"0"){
+
+			moves.push_back(position + 8);
+			if ((position/8) == 1){
+				moves.push_back(position + 16);
+			}
+		}
+		if (boardState[position + 7] != *"0"){
+			moves.push_back(position + 7);
+		}
+		if (boardState[position + 9] != *"0"){
+			moves.push_back(position + 9);
+		}
 	}
 	else {
-		moves.push_back(position-=8);
+		if (boardState[position - 8] == *"0"){
+			moves.push_back(position - 8);
+			if ((position/8) == 6){
+				moves.push_back(position - 16);
+			}
+		}
+		if (boardState[position - 7] != *"0"){
+			moves.push_back(position - 7);
+		}
+		if (boardState[position - 9] != *"0"){
+			moves.push_back(position - 9);
+		}
 	}
 	return moves;
 }
@@ -81,14 +104,50 @@ std::vector<int>  bishopMoves(int position, std::string boardState, int color){
 	}
 	return moves;
 }
-std::vector<int>  knightMoves(int position, std::string boardState, int color);
+std::vector<int>  knightMoves(int position, std::string boardState, int color){
+	std::vector<int> moves;
+	if (position%8 != 0){
+		moves.push_back(position - 17);
+		moves.push_back(position + 15);
+	}
+	if (position%8 != 8){
+		moves.push_back(position - 15);
+		moves.push_back(position + 17);
+	}
+	if (position%8 >= 2){
+		moves.push_back(position - 10);
+		moves.push_back(position + 6);
+	}
+	if (position%8 <= 5){
+		moves.push_back(position + 10);
+		moves.push_back(position - 6);
+	}
+	return moves;
+}
+
 std::vector<int>  queenMoves(int position, std::string boardState, int color){
 	std::vector<int> rook = rookMoves(position, boardState, color);
 	std::vector<int> bishop = bishopMoves(position, boardState, color);
 	rook.insert(rook.end(), bishop.begin(), bishop.end());
 	return rook;
 }
-std::vector<int>  kingMoves(int position, std::string boardState, int color);
+std::vector<int>  kingMoves(int position, std::string boardState, int color){
+	std::vector<int> moves;
+	moves.push_back(position + 8);
+	moves.push_back(position - 8);
+	if (position%8 > 0){
+		moves.push_back(position - 9);
+		moves.push_back(position - 1);
+		moves.push_back(position + 7);
+	}
+	if (position%8 < 7){
+		moves.push_back(position - 7);
+		moves.push_back(position + 1);
+		moves.push_back(position + 9);
+	}
+
+	return moves;
+}
 std::vector<int>  generateMoves(int position, std::string boardState){
 	char piece = boardState[position];
 	int color = isupper(piece);
@@ -99,13 +158,13 @@ std::vector<int>  generateMoves(int position, std::string boardState){
 		moves = rookMoves(position, boardState, color);
 	} else if (piece == *"b" || piece == *"B"){
 		moves = bishopMoves(position, boardState, color);
-	} /*else if (piece == *"n" || piece == *"N"){
+	} else if (piece == *"n" || piece == *"N"){
 		moves = knightMoves(position, boardState, color);
 	} else if (piece == *"q" || piece == *"Q"){
 		moves = queenMoves(position, boardState, color);
 	} else if (piece == *"k" || piece == *"K"){
 		moves = kingMoves(position, boardState, color);
-	}*/
-	return queenMoves(position, boardState, color);
+	}
+	return moves;
 	
 }
