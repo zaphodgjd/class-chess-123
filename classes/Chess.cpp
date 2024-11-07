@@ -1,7 +1,6 @@
 #include <cmath>
 #include "Chess.h"
 #include "../tools/Logger.h"
-#include <map>
 
 Chess::Chess() {
 	// precompute dist.
@@ -14,14 +13,14 @@ Chess::Chess() {
 			int east  = 7 - file;
 
 			int i = rank * 8 + file;
-			dist[i][0] = north;
-			dist[i][1] = east;
-			dist[i][2] = south;
-			dist[i][3] = west;
-			dist[i][4] = std::min(north, west);
-			dist[i][5] = std::min(north, east),
-			dist[i][6] = std::min(south, east),
-			dist[i][7] = std::min(south, west);
+			_dist[i][0] = north;
+			_dist[i][1] = east;
+			_dist[i][2] = south;
+			_dist[i][3] = west;
+			_dist[i][4] = std::min(north, east);
+			_dist[i][5] = std::min(south, east),
+			_dist[i][6] = std::min(south, west),
+			_dist[i][7] = std::min(north, west);
 		}
 	}
 }
@@ -40,9 +39,9 @@ const std::map<char, ChessPiece> pieceFromSymbol = {
 };
 
 // make a chess piece for the player
-Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece) {
+ChessBit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece) {
 	const char* pieces[] = { "pawn.png", "knight.png", "bishop.png", "rook.png", "queen.png", "king.png" };
-	Bit* bit = new Bit();
+	ChessBit* bit = new ChessBit();
 
 	// we could maybe cache this to make things simpler.
 	const char* pieceName = pieces[piece - 1];
@@ -61,7 +60,7 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece) {
 }
 
 // we DON'T error check here b/c of overhead. Check it yourself!
-Bit* Chess::PieceForPlayer(const char piece) {
+ChessBit* Chess::PieceForPlayer(const char piece) {
 	return PieceForPlayer((int)!std::isupper(piece), pieceFromSymbol.at(std::tolower(piece)));
 }
 
@@ -84,16 +83,22 @@ void Chess::setUpBoard() {
 	}
 
 	// Seems like a good idea to start the game using Fen notation, so I can easily try different states for testing.
-	setStateFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
-	//startGame();
+	setStateFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+	startGame();
+	moveGenerator();
 }
 
-const int dir[8] = {8, 1, -8, -1, 7, 9, -7, -9};
-std::vector<std::pair<int, int>> Chess::moveGenerator() const {
-	std::vector<std::pair<int, int>> moves;
-	for (auto square : pieces) {
-		const int piece = square.bit()->gameTag();
-		const int index = square.getRow() * 8 + square.getColumn();
+const int dir[8] = {8, 1, -8, -1, 9, -7, -9, 7};
+void Chess::moveGenerator() {
+	// this isn't optimised the best; in the future we'll want to use bitboards instead.
+	_moves.clear();
+	for (ChessSquare& square : _grid) {
+		// we only do half of the moves b/c we'll have to recalculate all moves next turn anyway
+		ChessBit* subject = square.bit();
+		if (!subject || subject->getOwner() != getCurrentPlayer()) continue;
+		const int  piece = subject->gameTag() & 7;
+		const bool black = subject->gameTag() & 8;
+		const int  index = square.getRow() * 8 + square.getColumn();
 
 		switch (piece) {
 			case ChessPiece::Bishop:
@@ -103,34 +108,34 @@ std::vector<std::pair<int, int>> Chess::moveGenerator() const {
 				int start = piece == ChessPiece::Bishop ? 4 : 0;
 				int end   = piece == ChessPiece::Rook   ? 4 : 8;
 				for (int i = start; i < end; i++) {
-					for (int k = 0; k < dist[index][i]; k++) {
-						int targ = start + dir[i] * (k + 1);
-						Bit* bit = _grid[targ].bit();
+					for (int k = 0; k < _dist[index][i]; k++) {
+						int targ = index + dir[i] * (k + 1);
+						ChessBit* bit = _grid[targ].bit();
 
 						if (bit) {
-							if (bit->friendly(square.bit())) {
+							if (bit->isAlly(square.bit())) {
 								break;
 							} else {
-								moves.push_back(std::make_pair(index, targ));
+								_moves[index].push_back(targ);
 								break;
 							}
 						}
 
-						moves.push_back(std::make_pair(index, targ));
+						_moves[index].push_back(targ);
 					}
 				}
 				break; }
 			case ChessPiece::Pawn: {
 				// determining if we can move two places ahead.
-				int moveDir = piece & 8 ? dir[2] : dir[0];
-				bool clean  = piece & 8 ? (square.getRow() == 6) : (square.getRow() == 2);
+				int moveDir = black ? dir[2] : dir[0];
+				bool clean  = black ? (square.getRow() == 6) : (square.getRow() == 1);
 
 				int targ = index + moveDir;
 				if (!_grid[targ].bit()) {
-					moves.push_back(std::make_pair(index, targ));
+					_moves[index].push_back(targ);
 					targ += moveDir;
 					if (clean && !_grid[targ].bit()) {
-						moves.push_back(std::make_pair(index, targ));
+						_moves[index].push_back(targ);
 					}
 				}
 			
@@ -142,13 +147,14 @@ std::vector<std::pair<int, int>> Chess::moveGenerator() const {
 					bool lValid = (dirIndex == 3) && (nTarg % _gameOps.X) < (targ  % _gameOps.X);
 					bool rValid = (dirIndex == 1) && (targ  % _gameOps.X) < (nTarg % _gameOps.X);
 					if (lValid || rValid) {
-						Bit* bit = _grid[nTarg].bit();
-						if (bit && !bit->friendly(square.bit())) {
-							moves.push_back(std::make_pair(index, nTarg));
+						ChessBit* bit = _grid[nTarg].bit();
+						if (bit && !bit->isAlly(square.bit())) {
+							_moves[index].push_back(nTarg);
 						}
 					}
 				}
 				break; }
+			// for future: consider pre-calculating all possible moves for knight: procedural is fine for now.
 			case ChessPiece::Knight: {
 				const int row = square.getRow();
 				const int col = square.getColumn();
@@ -162,52 +168,89 @@ std::vector<std::pair<int, int>> Chess::moveGenerator() const {
 					const int nCol = col + move[1];
 
 					if (nRow >= 0 && nRow < 8 && nCol >= 0 && nCol < 8) {
-						Bit* bit = _grid[nRow * 8 + nCol].bit();
-						if (!bit || (bit && !bit->friendly(square.bit()))) {
-							moves.push_back(std::make_pair(index, nRow * 8 + nCol));
+						ChessBit* bit = _grid[nRow * 8 + nCol].bit();
+						if (!bit || (bit && !bit->isAlly(square.bit()))) {
+							_moves[index].push_back(nRow * 8 + nCol);
 						}
 					}
 				}
 				break; }
 			case ChessPiece::King: {
 				for (int i = 0; i < 8; i++) {
+					if (_dist[index][i] < 1) continue;
 					int targ = index + dir[i];
-					Bit* bit = _grid[targ].bit();
+					ChessBit* bit = _grid[targ].bit();
 
 					if (bit) {
-						if (bit->friendly(square.bit())) {
-							break;
+						if (bit->isAlly(square.bit())) {
+							continue;
 						} else {
-							moves.push_back(std::make_pair(index, targ));
-							break;
+							_moves[index].push_back(targ);
+							continue;
 						}
 					}
 
-					moves.push_back(std::make_pair(index, targ));
+					_moves[index].push_back(targ);
 				}
 				break; }
 			default:
 				break;
 		}
 	}
-
-	return moves;
 }
 
+// nothing for chess
+// Consider adding support for clicking on highlighted positions to allow insta moving. Could be cool.
 bool Chess::actionForEmptyHolder(BitHolder &holder) {
 	return false;
 }
 
-bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src) {
-	return true;
+bool Chess::canBitMoveFrom(Bit& bit, BitHolder& src) {
+	ChessSquare& srcSquare = static_cast<ChessSquare&>(src);
+	bool canMove = false;
+	const int i = srcSquare.getIndex();
+
+	// un-lit the squares when clicking on a new square.
+	while (!_litSquare.empty()) {
+		_litSquare.top()->setMoveHighlighted(false);
+		_litSquare.pop();
+	}
+
+	if (_moves.count(i)) {
+		canMove = true;
+		for (int attacking : _moves[i]) {
+			_grid[attacking].setMoveHighlighted(true);
+			_litSquare.push(&_grid[attacking]);
+			Loggy.log("Pushed to lit: " + std::to_string(attacking));
+		}
+	}
+	return canMove;
 }
 
+// Is the piece allowed to move here?
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) {
-	return true;
+	ChessSquare& srcSquare = static_cast<ChessSquare&>(src);
+	ChessSquare& dstSquare = static_cast<ChessSquare&>(dst);
+	const int i = srcSquare.getIndex();
+	const int j = dstSquare.getIndex();
+	for (int pos : _moves[i]) {
+		if (pos == j) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
+// borrow graeme's code; note, game calls this function and unless we want to call base we'll need to specifically end turn here.
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
-	
+	// call base.
+	Game::bitMovedFromTo(bit, src, dst);
+	while (!_litSquare.empty()) {
+		_litSquare.top()->setMoveHighlighted(false);
+		_litSquare.pop();
+	}
+	moveGenerator();
 }
 
 // free all the memory used by the game on the heap
@@ -252,7 +295,7 @@ void Chess::setStateString(const std::string &s) {
 }
 
 // lifted from Sebastian Lague's Coding Adventure on Chess. 2:37
-void Chess::setStateFromFen(const std::string &fen) {
+void Chess::setStateFromFEN(const std::string &fen) {
 	int file = 7, rank = 0;
 	for (const char symbol : fen) {
 		if (symbol == '/') {

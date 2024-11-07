@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ChessBit.h"
 #include "BitHolder.h"
 
 class ChessSquare : public BitHolder {
@@ -10,22 +11,19 @@ public:
 		_notation = '0'; // init to false
 	}
 
+	ChessBit* bit() const override { return static_cast<ChessBit*>(BitHolder::bit()); }
+	ChessBit* bit() override { return static_cast<ChessBit*>(BitHolder::bit()); }
+
 	void setBit(Bit *bit) override;
 
 	// initialize the holder with a position, color, and a sprite
 	void initHolder(const ImVec2 &position, const char *spriteName, const int column, const int row);
+	ChessBit* canDragBit(Bit *bit, Player* player) override { return static_cast<ChessBit*>(BitHolder::canDragBit(bit, player)); }
 	bool canDropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 	bool dropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 
 	char getNotation() { return _notation; }
 	void setMoveHighlighted(bool highlight);
-
-	// I'm confused by what the point of this is.
-	int getDistance(const ChessSquare &other) {
-		int columnDistance = abs(_column - other._column);
-		int rowDistance = abs(_row - other._row);
-		return columnDistance > rowDistance ? columnDistance : rowDistance;
-	}
 
 	int getColumn() { return _column; }
 	int getRow() { return _row; }
@@ -38,5 +36,5 @@ private:
 	int _column;
 	int _row;
 	char _notation;
-	//Sprite _indicator;
+	Sprite _indicator;
 };

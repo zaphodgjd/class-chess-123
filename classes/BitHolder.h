@@ -14,8 +14,8 @@ public:
 	~BitHolder();
 
 	// current piece or nullptr if empty
-	Bit *bit() const;
-	Bit *bit();
+	virtual Bit *bit() const;
+	virtual Bit *bit();
 	// set the current piece
 	virtual void setBit(Bit *bit);
 	// destroy the current piece, triggering any associated animations

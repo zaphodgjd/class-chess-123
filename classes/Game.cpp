@@ -83,7 +83,7 @@ void Game::startGame() {
 }
 
 void Game::endTurn() {
-	Loggy.log(Logger::WARNING, "Turn end.");
+	Loggy.log(Logger::INFO, "Turn end.");
 	_gameOps.currentTurnNo++;
 	std::string startState = stateString();
 	Turn *turn = new Turn;
@@ -143,6 +143,7 @@ void Game::findDropTarget(ImVec2 &pos) {
 					_dropTarget->setHighlighted(false);
 					_dropTarget = nullptr;
 				}
+				// are we allowed to move this bit here?
 				if (holder.canDropBitAtPoint(_dragBit, pos) && canBitMoveFromTo(*_dragBit, *_oldHolder, holder)) {
 					_dropTarget = &holder;
 					_dropTarget->setHighlighted(true);
@@ -200,7 +201,6 @@ void Game::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 	// scoring + captures...
 
 	// etc...
-
 	endTurn();
 }
 

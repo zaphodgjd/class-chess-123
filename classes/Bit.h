@@ -38,8 +38,12 @@ public:
 	Player *getOwner();
 	void setOwner(Player* player) { _owner = player; };
 	// helper functions
-	bool friendly(const Bit* other) const { return other->_owner == this->_owner; }
-	bool friendly(const Player* player) const { return this->_owner == player; }
+	// IN THE FUTURE::: MOVE THESE TO A CHESSBIT, AND RETURN THESE TO ORIGINAL STATE
+
+	// these are meant to be overridden further down!
+	virtual bool friendly()   const { return true; }
+	virtual bool unfriendly() const { return !friendly(); }
+
 	// game defined game tags
 	int gameTag() const { return _gameTag; };
 	void setGameTag(int tag) { _gameTag = tag; };
@@ -49,7 +53,7 @@ public:
 	void setOpacity(float opacity){};
 	bool getMoving() { return _moving; };
 
-private:
+protected:
 	int _restingZ;
 	float _restingTransform;
 	bool _pickedUp;

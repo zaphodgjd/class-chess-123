@@ -16,10 +16,14 @@ std::string formatCords(const int a, const int b) {
 }
 
 void ChessSquare::setBit(Bit* abit) {
-	if (_bit && abit) {
-		Loggy.log(Logger::WARNING, std::to_string((abit->gameTag() & 8) >> 3) + "'s " + std::to_string(abit->gameTag() & 7) + " takes " + std::to_string((_bit->gameTag() & 8) >> 3) + "'s " + std::to_string(_bit->gameTag() & 7));
+	// consider a static_cast IF safe
+	ChessBit* bit = dynamic_cast<ChessBit*>(abit);
+	if (abit && bit == nullptr) { // abit exists but is not ChessBit
+		Loggy.log(Logger::ERROR, "ChessSquare::setBit -- abit must be type ChessBit!");
+		throw std::invalid_argument("abit must be type ChessBit!");
 	}
-	BitHolder::setBit(abit);
+
+	BitHolder::setBit(bit);
 
 	unsigned char notation = '0';
 	if (_bit) {
@@ -45,29 +49,34 @@ void ChessSquare::initHolder(const ImVec2 &position, const char *spriteName, con
 }
 
 bool ChessSquare::canDropBitAtPoint(Bit *newbit, const ImVec2 &point) {
-	if (bit() == nullptr) {
+	if (bit() == nullptr)
 		return true;
-	}
+	// dynamic cast is unneeded b/c gameTag() is not a virtual funciton.
 
 	// xor the gametags to see if we have opposing colors
-	if (((bit()->gameTag() & 8) ^ (newbit->gameTag() & 8)) >= 8) {
+	if (((bit()->gameTag() & 8) ^ (newbit->gameTag() & 8)) >= 8)
 		return true;
-	}
 	return false;
 }
 
 bool ChessSquare::dropBitAtPoint(Bit *newbit, const ImVec2 &point) {
+	ChessBit* nBit = dynamic_cast<ChessBit*>(newbit);
+	if (nBit == nullptr) {
+		Loggy.log(Logger::ERROR, "ChessSquare::dropBitAtPoint -- newbit must be type ChessBit!");
+		throw std::invalid_argument("newbit must be type ChessBit!");
+	}
+
 	if (bit() == nullptr) {
-		setBit(newbit);
-		newbit->setParent(this);
-		newbit->moveTo(getPosition());
+		setBit(nBit);
+		nBit->setParent(this);
+		nBit->moveTo(getPosition());
 		return true;
 	}
 	// we're taking a piece!
-	if ((bit()->gameTag() ^ newbit->gameTag()) >= 8) {
-		setBit(newbit);
-		newbit->setParent(this);
-		newbit->moveTo(getPosition());
+	if ((bit()->gameTag() ^ nBit->gameTag()) >= 8) {
+		setBit(nBit);
+		nBit->setParent(this);
+		nBit->moveTo(getPosition());
 		return true;
 	}
 	return false;

@@ -1,7 +1,11 @@
 #pragma once
+
+#include <vector>
+#include <unordered_map>
+#include <stack>
+
 #include "Game.h"
 #include "ChessSquare.h"
-#include <vector>
 
 const int pieceSize = 64;
 
@@ -29,13 +33,13 @@ public:
 	std::string	initialStateString() override;
 	std::string	stateString() override;
 	void		setStateString(const std::string &s) override;
-	void		setStateFromFen(const std::string &fen);
+	void		setStateFromFEN(const std::string &fen);
 	bool		actionForEmptyHolder(BitHolder& holder) override;
 	bool		canBitMoveFrom(Bit& bit, BitHolder& src) override;
 	bool		canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) override;
 	void		bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
 
-	std::vector<std::pair<int, int>> moveGenerator() const;
+	void moveGenerator();
 
 	void		stopGame() override;
 	BitHolder&	getHolderAt(const int x, const int y) override { return _grid[y * 8 + x]; }
@@ -44,15 +48,17 @@ public:
 	bool		gameHasAI() override { return false; }
 
 private:
-	Bit* 		PieceForPlayer(const int playerNumber, ChessPiece piece);
-	Bit* 		PieceForPlayer(const char piece);
+	ChessBit* 		PieceForPlayer(const int playerNumber, ChessPiece piece);
+	ChessBit* 		PieceForPlayer(const char piece);
 	const char	bitToPieceNotation(int rank, int file) const;
     const char	bitToPieceNotation(int i) const;
 
-	// distances at a given position to the board's boundries. North, East, South, West, NW, NE, SE, SW.
-	int dist[64][8];
+	// distances at a given position to the board's boundries. North, East, South, West, NE, SE, SW, NW
+	int _dist[64][8];
 	ChessSquare	_grid[64];
-	std::vector<ChessSquare> pieces;
+	std::unordered_map<int, std::vector<int>> _moves;
+	// I don't need to use a stack, a vector would be perfectly fine, but a stack is syntactically simpler.
+	std::stack<ChessSquare*> _litSquare;
 };
 
 // https://www.chessprogramming.org/Bitboards
