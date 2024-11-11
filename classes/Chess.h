@@ -14,37 +14,38 @@ enum ChessPiece {
     King
 };
 
-//
-// the main game class
-//
-class Chess : public Game
-{
+class Chess : public Game {
 public:
     Chess();
     ~Chess();
 
-    // set up the board
     void        setUpBoard() override;
-
     Player*     checkForWinner() override;
     bool        checkForDraw() override;
     std::string initialStateString() override;
     std::string stateString() override;
     void        setStateString(const std::string &s) override;
-    bool        actionForEmptyHolder(BitHolder& holder) override;
+    bool        actionForEmptyHolder(BitHolder& holder) override;  // Uncommented if it's being overridden
     bool        canBitMoveFrom(Bit& bit, BitHolder& src) override;
     bool        canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) override;
     void        bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) override;
-
     void        stopGame() override;
-    BitHolder& getHolderAt(const int x, const int y) override { return _grid[y][x]; }
-
+    BitHolder&  getHolderAt(const int x, const int y) override { return _grid[y][x]; }
 	void        updateAI() override;
     bool        gameHasAI() override { return true; }
+
 private:
-    Bit *       PieceForPlayer(const int playerNumber, ChessPiece piece);
+    Bit*        PieceForPlayer(const int playerNumber, ChessPiece piece);
+    void        initializePiece(int y, int x, int playerNumber, ChessPiece piece);  // Added initializePiece here
     const char  bitToPieceNotation(int row, int column) const;
 
-    ChessSquare      _grid[8][8];
-};
+    // Movement validation functions for each piece type
+    bool        isValidPawnMove(Bit& bit, int startX, int startY, int endX, int endY);
+    bool        isValidKnightMove(int startX, int startY, int endX, int endY);
+    bool        isValidBishopMove(int startX, int startY, int endX, int endY);
+    bool        isValidRookMove(int startX, int startY, int endX, int endY);
+    bool        isValidQueenMove(int startX, int startY, int endX, int endY);
+    bool        isValidKingMove(int startX, int startY, int endX, int endY);
 
+    ChessSquare _grid[8][8];
+};

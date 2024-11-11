@@ -3,6 +3,8 @@
 const int AI_PLAYER = 1;
 const int HUMAN_PLAYER = -1;
 
+using namespace std;
+
 Chess::Chess()
 {
 }
@@ -32,50 +34,74 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
 
 void Chess::setUpBoard()
 {
-    setNumberOfPlayers(2);
+    ChessPiece initGrid[8][8] = 
+        {{Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook},
+        {Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn},
+        {NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece}, 
+        {NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece},
+        {NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece},
+        {NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece, NoPiece},
+        {Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn},
+        {Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook}
+        };
+
+    const int BOARDDIM = 8;
     _gameOptions.rowX = 8;
     _gameOptions.rowY = 8;
-    //
-    // we want white to be at the bottom of the screen so we need to reverse the board
-    //
-    char piece[2];
-    piece[1] = 0;
-    for (int y = 0; y < _gameOptions.rowY; y++) {
-        for (int x = 0; x < _gameOptions.rowX; x++) {
-            ImVec2 position((float)(pieceSize * x + pieceSize), (float)(pieceSize * (_gameOptions.rowY - y) + pieceSize));
-            _grid[y][x].initHolder(position, "boardsquare.png", x, y);
-            _grid[y][x].setGameTag(0);
-            piece[0] = bitToPieceNotation(y,x);
-            _grid[y][x].setNotation(piece);
+    int x; int y;
+
+    setNumberOfPlayers(2);
+    for (int i = 0; i < BOARDDIM; i++){
+        for (int j = 0; j < BOARDDIM; j++){
+            x = 64 * j + 100; y = 64 * i + 100;
+            const ImVec2 loc = ImVec2(x, y);
+            _grid[i][j].initHolder(loc, "boardsquare.png", i, j); 
+            ChessPiece initp = initGrid[i][j];
+            _grid[i][j].setGameTag((i < 4) ? initp + 128 : initp); // need to add 128 if in black pieces
+            if (initp != NoPiece){
+                Bit* myBit = PieceForPlayer((i < 4) ? 1 : 0, initp);  // need to check for if black or not
+                myBit->setParent(&_grid[i][j]);
+                myBit->setPosition(loc);
+                _grid[i][j].setBit(myBit);
+            }
+
         }
     }
-    Bit* bit = PieceForPlayer(0, King);
-    bit->setPosition(_grid[4][4].getPosition());
-    bit->setParent(&_grid[4][4]);
-    bit->setGameTag(King);
-    _grid[0][0].setBit(bit);
+   
+    startGame();
 }
 
 //
-// about the only thing we need to actually fill out for tic-tac-toe
+// about the only thing we need to actually fill out for chess 
 //
 bool Chess::actionForEmptyHolder(BitHolder &holder)
 {
-    return false;
+    if (holder.bit()) {
+        return false;
+    }
+    return true;
 }
 
 bool Chess::canBitMoveFrom(Bit &bit, BitHolder &src)
 {
-    return true;
+    if (src.bit() == &bit){
+        return true;
+    }
+    // needs to be set
+    return false;
 }
 
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst)
 {
-    return true;
+    if (dst.canDropBitAtPoint(&bit, dst.getPosition())){
+        return true;
+    }
+    return false;
 }
 
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
-
+    dst.dropBitAtPoint(&bit, dst.getPosition());
+    src.setBit(nullptr); 
 }
 
 //
@@ -167,4 +193,3 @@ void Chess::setStateString(const std::string &s)
 void Chess::updateAI() 
 {
 }
-
