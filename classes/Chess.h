@@ -47,11 +47,17 @@ public:
 	void		updateAI() override;
 	bool		gameHasAI() override { return false; }
 
+	std::unordered_map<int, std::vector<int>> getMoves() const {
+		return _moves;
+	}
+
 private:
 	ChessBit* 		PieceForPlayer(const int playerNumber, ChessPiece piece);
 	ChessBit* 		PieceForPlayer(const char piece);
 	const char	bitToPieceNotation(int rank, int file) const;
     const char	bitToPieceNotation(int i) const;
+
+	inline void clearPositionHighlights();
 
 	// distances at a given position to the board's boundries. North, East, South, West, NE, SE, SW, NW
 	int _dist[64][8];

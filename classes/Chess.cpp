@@ -72,7 +72,7 @@ void Chess::setUpBoard() {
 		for (int rank = 0; rank < _gameOps.X; rank++) {
 			// Unfortunately the _gameOps.Y - y part is neccesary to get this to display properly.
 			_grid[file * 8 + rank].initHolder((ImVec2(rank * 64 + 50, (_gameOps.Y - file) * 64 + 50)),
-									"square.png", rank, file);
+									"chess/square.png", rank, file);
 			// game tag init to 0
 			// notation is set later.
 		}
@@ -206,15 +206,12 @@ bool Chess::actionForEmptyHolder(BitHolder &holder) {
 }
 
 bool Chess::canBitMoveFrom(Bit& bit, BitHolder& src) {
+	// un-lit the squares when clicking on a new square.
+	clearPositionHighlights();
+
 	ChessSquare& srcSquare = static_cast<ChessSquare&>(src);
 	bool canMove = false;
 	const int i = srcSquare.getIndex();
-
-	// un-lit the squares when clicking on a new square.
-	while (!_litSquare.empty()) {
-		_litSquare.top()->setMoveHighlighted(false);
-		_litSquare.pop();
-	}
 
 	if (_moves.count(i)) {
 		canMove = true;
@@ -246,11 +243,15 @@ bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) {
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 	// call base.
 	Game::bitMovedFromTo(bit, src, dst);
+	clearPositionHighlights();
+	moveGenerator();
+}
+
+inline void Chess::clearPositionHighlights() {
 	while (!_litSquare.empty()) {
 		_litSquare.top()->setMoveHighlighted(false);
 		_litSquare.pop();
 	}
-	moveGenerator();
 }
 
 // free all the memory used by the game on the heap

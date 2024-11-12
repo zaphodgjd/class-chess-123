@@ -66,7 +66,7 @@ int main(int, char**)
 #endif
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "CMPM 123 Class Project", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Chess", nullptr, nullptr);
     if (window == nullptr)
         return 1;
     glfwMakeContextCurrent(window);

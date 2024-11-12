@@ -15,6 +15,41 @@ namespace ClassGame {
 		game->setUpBoard();
 	}
 
+	void drawMoveProber() {
+		const ImGuiTableFlags flags = ImGuiTableFlags_Borders |
+							ImGuiTableFlags_RowBg;
+
+		ImGui::BeginChild("Moves", ImVec2(0, 0), true); 
+		if (ImGui::BeginTable("Move Prober", 2, flags)) {
+			ImGui::TableSetupColumn("I", ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_DefaultSort, 12.0f);
+			ImGui::TableSetupColumn("Moves", ImGuiTableColumnFlags_WidthFixed  | ImGuiTableColumnFlags_DefaultSort);
+			ImGui::TableHeadersRow();
+
+			std::unordered_map<int, std::vector<int>> moves = game->getMoves();
+			std::vector<std::pair<int, std::vector<int>>> moveList;
+			moveList.reserve(64);
+			for (int i = 0; i < 64; i++) {
+				moveList.emplace_back(i, moves[i]);
+			}
+
+			for(const std::pair<int, std::vector<int>>& data : moveList) {
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("%s", std::to_string(data.first).c_str());
+
+				ImGui::TableSetColumnIndex(1);
+				std::string moves;
+				for (int i : data.second) {
+					moves += std::to_string(i) + " ";
+				}
+				ImGui::Text("%s", moves.c_str());
+			}
+
+			ImGui::EndTable();
+		}
+		ImGui::EndChild();
+	}
+
 	// game render loop
 	// this is called by the main render loop in main.cpp
 	void RenderGame() {
@@ -25,6 +60,8 @@ namespace ClassGame {
 		ImGui::Begin("Settings");
 		ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
 		ImGui::Text("Current Board State: %s", game->stateString().c_str());
+
+		drawMoveProber();
 
 		if (gameOver) {
 			ImGui::Text("Game Over!");

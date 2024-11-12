@@ -15,6 +15,18 @@ std::string formatCords(const int a, const int b) {
 	return "(" + std::to_string(a) + ", " + std::to_string(b) + ")";
 }
 
+inline char generateNotation(ChessBit* abit) {
+	if (abit) {
+		const char* w = { "PNBRQK" };
+		const char* b = { "pnbrqk" };
+		// get the non-coloured piece
+		int piece = abit->gameTag() & 7;
+		return 8 & abit->gameTag() ? b[piece - 1] : w[piece - 1];
+	}
+	return '0';
+}
+
+
 void ChessSquare::setBit(Bit* abit) {
 	// consider a static_cast IF safe
 	ChessBit* bit = dynamic_cast<ChessBit*>(abit);
@@ -24,17 +36,7 @@ void ChessSquare::setBit(Bit* abit) {
 	}
 
 	BitHolder::setBit(bit);
-
-	unsigned char notation = '0';
-	if (_bit) {
-		const char* w = { "PNBRQK" };
-		const char* b = { "pnbrqk" };
-		// get the actual piece
-		int piece = _bit->gameTag() & 7;
-		notation = 8 & _bit->gameTag() ? b[piece - 1] : w[piece - 1];
-	}
-
-	_notation = notation;
+	_notation = generateNotation(bit);
 }
 
 void ChessSquare::initHolder(const ImVec2 &position, const char *spriteName, const int column, const int row) {
