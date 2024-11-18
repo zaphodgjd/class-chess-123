@@ -25,28 +25,40 @@ namespace ClassGame {
 			ImGui::TableSetupColumn("Moves", ImGuiTableColumnFlags_WidthFixed  | ImGuiTableColumnFlags_DefaultSort);
 			ImGui::TableHeadersRow();
 
-			std::unordered_map<int, std::vector<int>> moves = game->getMoves();
-			std::vector<std::pair<int, std::vector<int>>> moveList;
+			std::unordered_map<uint8_t, std::vector<Move>> moves = game->getMoves();
+			std::vector<std::pair<int, std::vector<Move>>> moveList;
 			moveList.reserve(64);
 			for (int i = 0; i < 64; i++) {
 				moveList.emplace_back(i, moves[i]);
 			}
 
-			for(const std::pair<int, std::vector<int>>& data : moveList) {
+			for(const std::pair<int, std::vector<Move>>& data : moveList) {
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
 				ImGui::Text("%s", std::to_string(data.first).c_str());
 
 				ImGui::TableSetColumnIndex(1);
 				std::string moves;
-				for (int i : data.second) {
-					moves += std::to_string(i) + " ";
+				for (Move i : data.second) {
+					moves += std::to_string(i.getTo()) + " ";
 				}
 				ImGui::Text("%s", moves.c_str());
 			}
 
 			ImGui::EndTable();
 		}
+		ImGui::EndChild();
+	}
+
+	void drawState() {
+		ImGui::BeginChild("State", ImVec2(300, 200), true);
+		GameState state = game->getState();
+		ImGui::Text("Game State");
+		ImGui::Text("Clock: %d", state.getClock());
+		ImGui::Text("Half Clock: %d", state.getHalfClock());
+		ImGui::Text("Black's Turn? %d", state.isBlackTurn());
+		ImGui::Text("En Passant Square: %d", state.getEnPassantSquare());
+		ImGui::Text("Castle Rights %d", state.getCastlingRights());
 		ImGui::EndChild();
 	}
 
@@ -61,6 +73,7 @@ namespace ClassGame {
 		ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
 		ImGui::Text("Current Board State: %s", game->stateString().c_str());
 
+		drawState();
 		drawMoveProber();
 
 		if (gameOver) {

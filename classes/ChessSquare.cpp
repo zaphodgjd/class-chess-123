@@ -36,12 +36,13 @@ void ChessSquare::setBit(Bit* abit) {
 	}
 
 	BitHolder::setBit(bit);
-	_notation = generateNotation(bit);
+	_pieceNotation = generateNotation(bit);
 }
 
 void ChessSquare::initHolder(const ImVec2 &position, const char *spriteName, const int column, const int row) {
 	_column = column;
 	_row = row;
+	_posNotation = std::string(1, 'a' + column) + std::to_string(row + 1);
 	int odd = (column + row) % 2;
 	ImVec4 color = odd ? ImVec4(0.93, 0.93, 0.84, 1.0) : ImVec4(0.48, 0.58, 0.36, 1.0);
 	BitHolder::initHolder(position, color, spriteName);

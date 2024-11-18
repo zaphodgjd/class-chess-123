@@ -1,4 +1,5 @@
 #include <cmath>
+#include <stdexcept>
 #include "Chess.h"
 #include "../tools/Logger.h"
 
@@ -64,6 +65,16 @@ ChessBit* Chess::PieceForPlayer(const char piece) {
 	return PieceForPlayer((int)!std::isupper(piece), pieceFromSymbol.at(std::tolower(piece)));
 }
 
+Move* Chess::MoveForPositions(const int i, const int j) {
+	for (unsigned int k = 0; k < _moves[i].size(); k++) {
+		if (_moves[i][k].getTo() == j) {
+			return &_moves[i][k];
+		}
+	}
+
+	return nullptr;
+}
+
 void Chess::setUpBoard() {
 	setNumberOfPlayers(2);
 
@@ -83,7 +94,7 @@ void Chess::setUpBoard() {
 	}
 
 	// Seems like a good idea to start the game using Fen notation, so I can easily try different states for testing.
-	setStateFromFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+	setStateString("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	startGame();
 	moveGenerator();
 }
@@ -96,46 +107,55 @@ void Chess::moveGenerator() {
 		// we only do half of the moves b/c we'll have to recalculate all moves next turn anyway
 		ChessBit* subject = square.bit();
 		if (!subject || subject->getOwner() != getCurrentPlayer()) continue;
-		const int  piece = subject->gameTag() & 7;
-		const bool black = subject->gameTag() & 8;
-		const int  index = square.getRow() * 8 + square.getColumn();
+		const uint8_t	piece = subject->gameTag() & 7;
+		const bool 		black = subject->gameTag() & 8;
+		const uint8_t	index = square.getRow() * 8 + square.getColumn();
+		_moves[index].reserve(31);
+		// average number of moves per turn
+		// https://chess.stackexchange.com/questions/23135/what-is-the-average-number-of-legal-moves-per-turn#24325
 
+		// unless I know a value will be sent to the move constructor,
+		// i'm not going to bother making everything a uint b/c readability & highlighting
 		switch (piece) {
-			case ChessPiece::Bishop:
 			case ChessPiece::Rook:
+				// awesome logic that'll fall through
+				[[fallthrough]];
+			case ChessPiece::Bishop:
 			case ChessPiece::Queen: {
 				// rotate around the piece and discover new spots the sliding pieces can move to.
 				int start = piece == ChessPiece::Bishop ? 4 : 0;
 				int end   = piece == ChessPiece::Rook   ? 4 : 8;
 				for (int i = start; i < end; i++) {
 					for (int k = 0; k < _dist[index][i]; k++) {
-						int targ = index + dir[i] * (k + 1);
+						uint8_t targ = index + dir[i] * (k + 1);
 						ChessBit* bit = _grid[targ].bit();
 
 						if (bit) {
 							if (bit->isAlly(square.bit())) {
 								break;
 							} else {
-								_moves[index].push_back(targ);
+								// TODO: calculate flags properly to update
+								_moves[index].emplace_back(index, targ, 1);
 								break;
 							}
 						}
 
-						_moves[index].push_back(targ);
+						_moves[index].emplace_back(index, targ);
 					}
 				}
 				break; }
 			case ChessPiece::Pawn: {
 				// determining if we can move two places ahead.
 				int moveDir = black ? dir[2] : dir[0];
-				bool clean  = black ? (square.getRow() == 6) : (square.getRow() == 1);
+				bool canDPush = black ? (square.getRow() == 6) : (square.getRow() == 1);
 
 				int targ = index + moveDir;
 				if (!_grid[targ].bit()) {
-					_moves[index].push_back(targ);
+					_moves[index].emplace_back(index, targ);
 					targ += moveDir;
-					if (clean && !_grid[targ].bit()) {
-						_moves[index].push_back(targ);
+					if (canDPush && !_grid[targ].bit()) {
+						// TODO: double check this code, b/c I am VERY TIRED as I'm writing this and there is 100% an oversight here.
+						_moves[index].emplace_back(index, targ, Move::FlagCodes::DoublePush);
 					}
 				}
 			
@@ -148,8 +168,9 @@ void Chess::moveGenerator() {
 					bool rValid = (dirIndex == 1) && (targ  % _gameOps.X) < (nTarg % _gameOps.X);
 					if (lValid || rValid) {
 						ChessBit* bit = _grid[nTarg].bit();
-						if (bit && !bit->isAlly(square.bit())) {
-							_moves[index].push_back(nTarg);
+						// if enpassant square is specified, then we know it's a legal move b/c en passant square is set on previous turn.
+						if ((_state.getEnPassantSquare() == nTarg) || (bit && !bit->isAlly(square.bit()))) {
+							_moves[index].emplace_back(index, nTarg, Move::FlagCodes::Capture);
 						}
 					}
 				}
@@ -169,13 +190,17 @@ void Chess::moveGenerator() {
 
 					if (nRow >= 0 && nRow < 8 && nCol >= 0 && nCol < 8) {
 						ChessBit* bit = _grid[nRow * 8 + nCol].bit();
-						if (!bit || (bit && !bit->isAlly(square.bit()))) {
-							_moves[index].push_back(nRow * 8 + nCol);
+
+						// this will break if I change the flag for capturing later.
+						bool canCapture = bit && !bit->isAlly(square.bit());
+						if (!bit || canCapture) {
+							_moves[index].emplace_back(index, nRow * 8 + nCol, canCapture);
 						}
 					}
 				}
 				break; }
 			case ChessPiece::King: {
+				// TODO: Castling
 				for (int i = 0; i < 8; i++) {
 					if (_dist[index][i] < 1) continue;
 					int targ = index + dir[i];
@@ -185,12 +210,12 @@ void Chess::moveGenerator() {
 						if (bit->isAlly(square.bit())) {
 							continue;
 						} else {
-							_moves[index].push_back(targ);
+							_moves[index].emplace_back(index, targ);
 							continue;
 						}
 					}
 
-					_moves[index].push_back(targ);
+					_moves[index].emplace_back(index, targ);
 				}
 				break; }
 			default:
@@ -215,7 +240,8 @@ bool Chess::canBitMoveFrom(Bit& bit, BitHolder& src) {
 
 	if (_moves.count(i)) {
 		canMove = true;
-		for (int attacking : _moves[i]) {
+		for (Move move : _moves[i]) {
+			uint8_t attacking = move.getTo();
 			_grid[attacking].setMoveHighlighted(true);
 			_litSquare.push(&_grid[attacking]);
 			Loggy.log("Pushed to lit: " + std::to_string(attacking));
@@ -228,10 +254,10 @@ bool Chess::canBitMoveFrom(Bit& bit, BitHolder& src) {
 bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) {
 	ChessSquare& srcSquare = static_cast<ChessSquare&>(src);
 	ChessSquare& dstSquare = static_cast<ChessSquare&>(dst);
-	const int i = srcSquare.getIndex();
-	const int j = dstSquare.getIndex();
-	for (int pos : _moves[i]) {
-		if (pos == j) {
+	const uint8_t i = srcSquare.getIndex();
+	const uint8_t j = dstSquare.getIndex();
+	for (Move move : _moves[i]) {
+		if (move.getTo() == j) {
 			return true;
 		}
 	}
@@ -241,8 +267,26 @@ bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst) {
 
 // borrow graeme's code; note, game calls this function and unless we want to call base we'll need to specifically end turn here.
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
+	ChessSquare& srcSquare = static_cast<ChessSquare&>(src);
+	ChessSquare& dstSquare = static_cast<ChessSquare&>(dst);
+
+	// get the move being played
+	const uint8_t i = srcSquare.getIndex();
+	const uint8_t j = dstSquare.getIndex();
+	Move* move = MoveForPositions(i, j);
+	if (!move) {
+		throw std::runtime_error("Illegal Move attempted ft: " + std::to_string(i) + " " + std::to_string(j));
+	}
+
+	// EnPassant Check
+	if (_state.getEnPassantSquare() < 64) {
+		_grid[_state.getEnPassantSquare()].destroyBit();
+		// increment score.
+	}
+
 	// call base.
 	Game::bitMovedFromTo(bit, src, dst);
+
 	clearPositionHighlights();
 	moveGenerator();
 }
@@ -278,27 +322,77 @@ std::string Chess::initialStateString() {
 // we will read the state string and store it in each turn object
 std::string Chess::stateString() {
 	std::string s;
-	for (int i = 0; i < _gameOps.size; i++) {
-		s += _grid[i].getNotation();
+	uint8_t emptyCount;
+
+	int file = 7, rank = 0;
+	for (unsigned int i = 0; i < _gameOps.size; i++) {
+		char piece = _grid[file * 8 + rank].getPieceNotation();
+		rank++;
+
+		if (piece == '0') { // Empty square
+			emptyCount++;
+		} else {
+			if (emptyCount > 0) {
+				s += std::to_string(emptyCount); // Append the count of empty squares
+				emptyCount = 0; // Reset count
+			}
+			s += piece; // Append the piece notation
+		}
+		
+		// Handle row breaks for FEN notation
+		if ((i + 1) % 8 == 0) {
+			if (emptyCount > 0) {
+				s += std::to_string(emptyCount); // Append remaining empty squares at end of row
+				emptyCount = 0;
+			}
+			if (i != (_gameOps.size - 1U)) {
+				s += '/'; // Add row separator
+				rank = 0;
+				file--;
+			}
+		}
 	}
+
+	s += getCurrentPlayer()->playerNumber() ? " b " : " w ";
+	std::string castlingRights;
+	{
+		uint8_t rights = _state.getCastlingRights();
+		if (rights & 0b1000) castlingRights += 'K';
+		if (rights & 0b0100) castlingRights += 'Q';
+		if (rights & 0b0010) castlingRights += 'k';
+		if (rights & 0b0001) castlingRights += 'q';
+	}
+	s += castlingRights;
+
+	{
+		uint8_t enP = _state.getEnPassantSquare();
+		if (enP < 64) {
+			s += ' ' + _grid[enP].getPositionNotation() + ' ';
+		} else {
+			s += " - ";
+		}
+	}
+
+	s += std::to_string((int)_state.getHalfClock()) + ' ' + std::to_string((int)_state.getClock());
 
 	return s;
 }
 
+// for my sanity
+#include <sstream>
+
 // this still needs to be tied into imguis init and shutdown
 // when the program starts it will load the current game from the imgui ini file and set the game state to the last saved state
-void Chess::setStateString(const std::string &s) {
-	for (int i = 0; i < _gameOps.size; i++) {
-		if (s[i] == '0') continue;
-		_grid[i].setBit(PieceForPlayer(s[i]));
-	}
-	// BitHolders are init'd with a null ref on bit, so there's no point in setting that unless neccesary.
-}
-
-// lifted from Sebastian Lague's Coding Adventure on Chess. 2:37
-void Chess::setStateFromFEN(const std::string &fen) {
+// modified from Sebastian Lague's Coding Adventure on Chess. 2:37
+void Chess::setStateString(const std::string& fen) {
 	int file = 7, rank = 0;
-	for (const char symbol : fen) {
+	size_t i = 0;
+	for (; i < fen.size(); i++) {
+		const char symbol = fen[i];
+		if (symbol == ' ') { // terminating when reaching turn indicator
+			break;
+		}
+
 		if (symbol == '/') {
 			rank = 0;
 			file--;
@@ -317,6 +411,43 @@ void Chess::setStateFromFEN(const std::string &fen) {
 			}
 		}
 	}
+
+	// extract the game state part of FEN
+	i++;
+	bool isBlack = (fen[i] == 'b');
+	i += 2;
+
+	uint8_t castling = 0;
+	while (i < fen.size() && fen[i] != ' ') {
+		switch (fen[i++]) {
+			case 'K': castling |= 1 << 3; break;
+			case 'Q': castling |= 1 << 2; break;
+			case 'k': castling |= 1 << 1; break;
+			case 'q': castling |= 1; break;
+			case '-': castling  = 0; break;
+		}
+	}
+	i++;
+
+	uint8_t enTarget = 255;
+	if (fen[i] != '-') {
+		int col	= fen[i++] - 'a';
+		int row	= fen[i++] - '1';
+
+		// Combine both to form a unique 8-bit value (8 * row + column)
+		enTarget = (row << 3) | col;
+	}
+	i++;
+	
+	uint8_t  hClock = 0;
+	uint16_t fClock = 0;
+	while (std::isdigit(fen[++i])) { hClock = hClock * 10 + (fen[i] - '0'); }
+	while (std::isdigit(fen[++i])) { fClock = fClock * 10 + (fen[i] - '0'); }
+
+	std::ostringstream oss;
+	oss << "State from FEN: " << fen << " | " << isBlack << ", " << (int)castling << ", " << (int)enTarget << ", " << (int)hClock << ", " << (int)fClock; 
+	Loggy.log(oss.str());
+	_state = GameState(isBlack, castling, enTarget, hClock, fClock);
 }
 
 // this is the function that will be called by the AI

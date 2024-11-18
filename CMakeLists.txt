@@ -50,6 +50,8 @@ set(SOURCES
 	imgui/imgui_widgets.cpp
 	imgui/imgui.cpp
 	imgui/imgui_impl_opengl3.cpp
+    classes/Move.cpp
+    classes/GameState.cpp
     classes/Bit.cpp
     classes/BitHolder.cpp
     classes/ChessSquare.cpp

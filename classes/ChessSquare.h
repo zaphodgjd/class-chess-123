@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
 #include "ChessBit.h"
 #include "BitHolder.h"
 
@@ -8,7 +10,8 @@ public:
 	ChessSquare() : BitHolder() {
 		_column = 0;
 		_row = 0;
-		_notation = '0'; // init to false
+		_pieceNotation = '0'; // init to false
+		_posNotation = 'a1';
 	}
 
 	ChessBit* bit() const override { return static_cast<ChessBit*>(BitHolder::bit()); }
@@ -22,12 +25,13 @@ public:
 	bool canDropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 	bool dropBitAtPoint(Bit *bit, const ImVec2 &point) override;
 
-	char getNotation() { return _notation; }
+	char getPieceNotation() const { return _pieceNotation; }
+	std::string getPositionNotation() const { return _posNotation; }
 	void setMoveHighlighted(bool highlight);
 
 	int getColumn() { return _column; }
 	int getRow() { return _row; }
-	int getIndex() { return _row * 8 + _column; }
+	uint8_t getIndex() { return _row * 8 + _column; }
 
 private:
 	ImVec4 Lerp(ImVec4 a, ImVec4 b, float t) {
@@ -35,6 +39,7 @@ private:
 	}
 	int _column;
 	int _row;
-	char _notation;
+	char _pieceNotation;
+	std::string _posNotation;
 	Sprite _indicator;
 };
