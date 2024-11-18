@@ -21,6 +21,7 @@ class GameState {
 	uint8_t getCastlingRights()	const { return castlingRights; }
 	uint8_t getHalfClock()		const { return halfClock; }
 	uint16_t getClock() const { return clock; }
+	void setCastlingRights(const uint8_t rights) { castlingRights = rights; }
 
 	protected:
 	//Bitboard bitboard;
@@ -31,6 +32,9 @@ class GameState {
 	uint8_t halfClock : 6;
 	uint16_t clock;
 	//const uint64_t hash;
+
+	// if i want to support undoing, it may be a good idea to add a string to these (or an associated class) that keeps track
+	// of FEN so I can reload from FEN.
 };
 
 // https://www.chessprogramming.org/Bitboards

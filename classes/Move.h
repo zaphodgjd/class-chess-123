@@ -18,8 +18,8 @@ class Move {
 		Capture    = 0b00000001,
 		DoublePush = 0b00000010,
 		Castling   = 0b00001100,
-		KCastle    = 0b00000100,
-		QCastle    = 0b00001000,
+		QCastle    = 0b00000100,
+		KCastle    = 0b00001000,
 		Promotion  = 0b11110000,
 		ToQueen    = 0b00010000,
 		ToKnight   = 0b00100000,
@@ -42,6 +42,12 @@ class Move {
 
 	void setTo(uint8_t);
 	void setFrom(uint8_t);
+	// Overwrite the flag completely.
+	void setFlags(uint8_t);
+	// Set specific bits of the flag, and leave the rest unchanged.
+	void setFlagBits(uint8_t);
+	// toggles selected bits from the flag mask.
+	void toggleFlags(uint8_t);
 
 	// really wish C++ had C# styled lambdas right now
 	bool isCapture()		const { return (getFlags() &  FlagCodes::Capture)		!= 0; }

@@ -26,3 +26,15 @@ void Move::setFrom(uint8_t from) {
 	move &= ~0b111111000000;
 	move |= (from & squareMask) << 6;
 }
+
+void Move::setFlags(uint8_t flag) {
+	move = (move & ~0xfff) | (flag << 12) | move & 0xfff;
+}
+
+void Move::setFlagBits(uint8_t flag) {
+	move = (move & ~0xfff) | (flag << 12) | move & 0xfff;
+}
+
+void Move::toggleFlags(uint8_t flag) {
+	move = ((move & ~0xfff) ^ (flag << 12)) | move & 0xfff;
+}

@@ -111,8 +111,9 @@ void Chess::moveGenerator() {
 		if (!subject || subject->getOwner() != getCurrentPlayer()) continue;
 		const uint8_t	piece = subject->gameTag() & 7;
 		const bool 		black = subject->gameTag() & 8;
-		const uint8_t	index = square.getRow() * 8 + square.getColumn();
+		const uint8_t	index = square.getIndex();
 		_moves[index].reserve(31);
+		int flag = 0;
 		// average number of moves per turn
 		// https://chess.stackexchange.com/questions/23135/what-is-the-average-number-of-legal-moves-per-turn#24325
 
@@ -121,6 +122,11 @@ void Chess::moveGenerator() {
 		switch (piece) {
 			case ChessPiece::Rook:
 				// awesome logic that'll fall through
+				if (index == 0 || index == 56) {
+					flag |= Move::FlagCodes::QCastle;
+				} else if (index == 7 || index == 63) {
+					flag |= Move::FlagCodes::KCastle;
+				}
 				[[fallthrough]];
 			case ChessPiece::Bishop:
 			case ChessPiece::Queen: {
@@ -137,12 +143,12 @@ void Chess::moveGenerator() {
 								break;
 							} else {
 								// TODO: calculate flags properly to update
-								_moves[index].emplace_back(index, targ, 1);
+								_moves[index].emplace_back(index, targ, Move::FlagCodes::Capture);
 								break;
 							}
 						}
 
-						_moves[index].emplace_back(index, targ);
+						_moves[index].emplace_back(index, targ, flag);
 					}
 				}
 				break; }
@@ -212,12 +218,11 @@ void Chess::moveGenerator() {
 						if (bit->isAlly(square.bit())) {
 							continue;
 						} else {
-							_moves[index].emplace_back(index, targ);
+							_moves[index].emplace_back(index, targ, Move::FlagCodes::Castling | Move::FlagCodes::Capture);
 							continue;
 						}
 					}
-
-					_moves[index].emplace_back(index, targ);
+					_moves[index].emplace_back(index, targ, Move::FlagCodes::Castling);
 				}
 				break; }
 			default:
@@ -287,6 +292,17 @@ void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 	}
 
 	_state.emplace(_state.top(), *move);
+
+	// Check if we just took a rook
+	if (j == 63 || j == 56 || j == 0 || j == 7) {
+		uint8_t flag = _state.top().getCastlingRights();
+		if (j == 56 || j == 0) {
+			flag &= _state.top().isBlackTurn() ? 0b1110 : 0b1011;
+		} else if (j == 63 || j == 7) {
+			flag &= _state.top().isBlackTurn() ? 0b1101 : 0b0111;
+		}
+		_state.top().setCastlingRights(flag);
+	}
 
 	// call base.
 	Game::bitMovedFromTo(bit, src, dst);
@@ -361,10 +377,14 @@ std::string Chess::stateString() {
 	std::string castlingRights;
 	{
 		uint8_t rights = _state.top().getCastlingRights();
-		if (rights & 0b1000) castlingRights += 'K';
-		if (rights & 0b0100) castlingRights += 'Q';
-		if (rights & 0b0010) castlingRights += 'k';
-		if (rights & 0b0001) castlingRights += 'q';
+		if (rights != 0) {
+			if (rights & 0b1000) castlingRights += 'K';
+			if (rights & 0b0100) castlingRights += 'Q';
+			if (rights & 0b0010) castlingRights += 'k';
+			if (rights & 0b0001) castlingRights += 'q';
+		} else {
+			castlingRights += '-';
+		}
 	}
 	s += castlingRights;
 

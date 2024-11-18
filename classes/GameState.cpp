@@ -17,8 +17,8 @@ GameState::GameState(const bool isBlack, const uint8_t castling,
 GameState::GameState(const GameState& old, const Move& move)
 	: isBlack(!old.isBlack),
 	// scuffed bit funkery: take old rights, mask out side's bits if castling happened.
-	castlingRights(old.castlingRights & ~((move.KingSideCastle()  ? (isBlack ? 0b0100 : 0b0001) : 0) 
-	                                    | (move.QueenSideCastle() ? (isBlack ? 0b1000 : 0b0010) : 0))),
+	castlingRights(old.castlingRights & ~((move.KingSideCastle()  ? (isBlack ? 0b1000 : 0b0010) : 0) 
+	                                    | (move.QueenSideCastle() ? (isBlack ? 0b0100 : 0b0001) : 0))),
 	// if double push, then get the square jumped over in turn and mark as EnPassant square.
 	enPassantSquare(move.isDoublePush() ? (move.getTo() + (isBlack ? -8 : 8)) : 255), // 255 b/c not a value normally reachable in gameplay
 	halfClock(move.isCapture() ? 0 : old.halfClock + 1),
