@@ -1,16 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
-#include <vector>
 
 #include "Move.h"
 
 class GameState {
 	public:
-	// empty constructor
-	GameState();
-
 	// Generate from FEN
 	GameState(const bool isBlack, const uint8_t castling,
 		const uint8_t enTarget, const uint8_t hClock, const uint16_t fClock);
@@ -19,15 +14,13 @@ class GameState {
 	GameState(const GameState& old, const Move& move);
 
 	GameState& operator=(const GameState& other);
+	bool operator==(const GameState& other);
 
 	bool isBlackTurn() const { return isBlack; }
 	uint8_t getEnPassantSquare()	const { return enPassantSquare; }
 	uint8_t getCastlingRights()	const { return castlingRights; }
 	uint8_t getHalfClock()		const { return halfClock; }
 	uint16_t getClock() const { return clock; }
-
-	bool pushMove(const Move& move);
-	bool popState();
 
 	protected:
 	//Bitboard bitboard;
@@ -37,9 +30,7 @@ class GameState {
 	uint8_t enPassantSquare;
 	uint8_t halfClock : 6;
 	uint16_t clock;
-	uint16_t stackPtr;
 	//const uint64_t hash;
-	std::vector<GameState> stateStack;
 };
 
 // https://www.chessprogramming.org/Bitboards

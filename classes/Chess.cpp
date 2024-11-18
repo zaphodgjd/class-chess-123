@@ -24,6 +24,8 @@ Chess::Chess() {
 			_dist[i][7] = std::min(north, west);
 		}
 	}
+	
+	// TODO: replace _state with vector & manage it like it's a stack internally.
 }
 
 Chess::~Chess() {
@@ -169,7 +171,7 @@ void Chess::moveGenerator() {
 					if (lValid || rValid) {
 						ChessBit* bit = _grid[nTarg].bit();
 						// if enpassant square is specified, then we know it's a legal move b/c en passant square is set on previous turn.
-						if ((_state.getEnPassantSquare() == nTarg) || (bit && !bit->isAlly(square.bit()))) {
+						if ((_state.top().getEnPassantSquare() == nTarg) || (bit && !bit->isAlly(square.bit()))) {
 							_moves[index].emplace_back(index, nTarg, Move::FlagCodes::Capture);
 						}
 					}
@@ -279,10 +281,12 @@ void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 	}
 
 	// EnPassant Check
-	if (_state.getEnPassantSquare() < 64) {
-		_grid[_state.getEnPassantSquare()].destroyBit();
+	if (_state.top().getEnPassantSquare() == j) {
+		_grid[j + (_state.top().isBlackTurn() ? 8 : -8)].destroyBit();
 		// increment score.
 	}
+
+	_state.emplace(_state.top(), *move);
 
 	// call base.
 	Game::bitMovedFromTo(bit, src, dst);
@@ -356,7 +360,7 @@ std::string Chess::stateString() {
 	s += getCurrentPlayer()->playerNumber() ? " b " : " w ";
 	std::string castlingRights;
 	{
-		uint8_t rights = _state.getCastlingRights();
+		uint8_t rights = _state.top().getCastlingRights();
 		if (rights & 0b1000) castlingRights += 'K';
 		if (rights & 0b0100) castlingRights += 'Q';
 		if (rights & 0b0010) castlingRights += 'k';
@@ -365,7 +369,7 @@ std::string Chess::stateString() {
 	s += castlingRights;
 
 	{
-		uint8_t enP = _state.getEnPassantSquare();
+		uint8_t enP = _state.top().getEnPassantSquare();
 		if (enP < 64) {
 			s += ' ' + _grid[enP].getPositionNotation() + ' ';
 		} else {
@@ -373,7 +377,7 @@ std::string Chess::stateString() {
 		}
 	}
 
-	s += std::to_string((int)_state.getHalfClock()) + ' ' + std::to_string((int)_state.getClock());
+	s += std::to_string((int)_state.top().getHalfClock()) + ' ' + std::to_string((int)_state.top().getClock());
 
 	return s;
 }
@@ -385,8 +389,8 @@ std::string Chess::stateString() {
 // when the program starts it will load the current game from the imgui ini file and set the game state to the last saved state
 // modified from Sebastian Lague's Coding Adventure on Chess. 2:37
 void Chess::setStateString(const std::string& fen) {
-	int file = 7, rank = 0;
 	size_t i = 0;
+	{ int file = 7, rank = 0;
 	for (; i < fen.size(); i++) {
 		const char symbol = fen[i];
 		if (symbol == ' ') { // terminating when reaching turn indicator
@@ -410,7 +414,7 @@ void Chess::setStateString(const std::string& fen) {
 				rank++;
 			}
 		}
-	}
+	}}
 
 	// extract the game state part of FEN
 	i++;
@@ -447,7 +451,7 @@ void Chess::setStateString(const std::string& fen) {
 	std::ostringstream oss;
 	oss << "State from FEN: " << fen << " | " << isBlack << ", " << (int)castling << ", " << (int)enTarget << ", " << (int)hClock << ", " << (int)fClock; 
 	Loggy.log(oss.str());
-	_state = GameState(isBlack, castling, enTarget, hClock, fClock);
+	_state.emplace(isBlack, castling, enTarget, hClock, fClock);
 }
 
 // this is the function that will be called by the AI

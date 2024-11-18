@@ -85,6 +85,12 @@ bool ChessSquare::dropBitAtPoint(Bit *newbit, const ImVec2 &point) {
 	return false;
 }
 
+std::string ChessSquare::indexToPosNotation(uint8_t index) {
+	int row = index / 8;
+	int col = index % 8;
+	return std::string(1, 'a' + col) + std::to_string(row + 1);
+}
+
 void ChessSquare::setMoveHighlighted(bool highlighted) {
 	int odd = (_column + _row) % 2;
 	_color = odd ? ImVec4(0.93, 0.93, 0.84, 1.0) : ImVec4(0.48, 0.58, 0.36, 1.0);

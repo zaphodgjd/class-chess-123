@@ -11,7 +11,7 @@ public:
 		_column = 0;
 		_row = 0;
 		_pieceNotation = '0'; // init to false
-		_posNotation = 'a1';
+		_posNotation = "a1";
 	}
 
 	ChessBit* bit() const override { return static_cast<ChessBit*>(BitHolder::bit()); }
@@ -27,7 +27,8 @@ public:
 
 	char getPieceNotation() const { return _pieceNotation; }
 	std::string getPositionNotation() const { return _posNotation; }
-	void setMoveHighlighted(bool highlight);
+	static std::string indexToPosNotation(uint8_t);
+	void setMoveHighlighted(bool);
 
 	int getColumn() { return _column; }
 	int getRow() { return _row; }

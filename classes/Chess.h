@@ -49,7 +49,7 @@ public:
 
 	// we only use this in application.cpp for debugging purposes
 	std::unordered_map<uint8_t, std::vector<Move>> getMoves() const { return _moves; }
-	GameState getState() const { return _state; }
+	GameState getState() const { return _state.top(); }
 
 private:
 	ChessBit* 		PieceForPlayer(const int playerNumber, ChessPiece piece);
@@ -63,7 +63,7 @@ private:
 	int _dist[64][8];
 	ChessSquare	_grid[64];
 	std::unordered_map<uint8_t, std::vector<Move>> _moves;
-	GameState _state;
+	std::stack<GameState> _state;
 	// I don't need to use a stack, a vector would be perfectly fine, but a stack is syntactically simpler.
 	std::stack<ChessSquare*> _litSquare;
 };
