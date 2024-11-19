@@ -28,11 +28,12 @@ void Move::setFrom(uint8_t from) {
 }
 
 void Move::setFlags(uint8_t flag) {
-	move = (move & ~0xfff) | (flag << 12) | move & 0xfff;
+	move = (move & ~0xfff) & (flag << 12) | move & 0xfff;
 }
 
+// supposed to be safer.
 void Move::setFlagBits(uint8_t flag) {
-	move = (move & ~0xfff) | (flag << 12) | move & 0xfff;
+	move = (move & ~0xfff) & (flag << 12) | move & 0xfff;
 }
 
 void Move::toggleFlags(uint8_t flag) {

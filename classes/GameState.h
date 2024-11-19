@@ -22,6 +22,9 @@ class GameState {
 	uint8_t getHalfClock()		const { return halfClock; }
 	uint16_t getClock() const { return clock; }
 	void setCastlingRights(const uint8_t rights) { castlingRights = rights; }
+	const char* getState() const { return state; }
+
+	// TODO: init state w/ proper values. For later!
 
 	protected:
 	//Bitboard bitboard;
@@ -32,6 +35,9 @@ class GameState {
 	uint8_t halfClock : 6;
 	uint16_t clock;
 	//const uint64_t hash;
+	char state[64];
+
+	// TODO: add a way of tracking board state (graeme recommends a 64 bit char array)
 
 	// if i want to support undoing, it may be a good idea to add a string to these (or an associated class) that keeps track
 	// of FEN so I can reload from FEN.

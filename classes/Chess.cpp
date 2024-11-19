@@ -158,12 +158,19 @@ void Chess::moveGenerator() {
 				bool canDPush = black ? (square.getRow() == 6) : (square.getRow() == 1);
 
 				int targ = index + moveDir;
+				bool canPromote = targ == (black ? (index % 8) : (index % 8) + 56);
 				if (!_grid[targ].bit()) {
-					_moves[index].emplace_back(index, targ);
-					targ += moveDir;
-					if (canDPush && !_grid[targ].bit()) {
-						// TODO: double check this code, b/c I am VERY TIRED as I'm writing this and there is 100% an oversight here.
-						_moves[index].emplace_back(index, targ, Move::FlagCodes::DoublePush);
+					if (canPromote) {
+						for (int i = 0; i < 4; i++) {
+							_moves[index].emplace_back(index, targ, Move::FlagCodes::ToQueen << i);
+						}
+					} else {
+						_moves[index].emplace_back(index, targ);
+						targ += moveDir;
+						if (canDPush && !_grid[targ].bit()) {
+							// TODO: double check this code, b/c I am VERY TIRED as I'm writing this and there is 100% an oversight here.
+							_moves[index].emplace_back(index, targ, Move::FlagCodes::DoublePush);
+						}
 					}
 				}
 			
@@ -176,9 +183,18 @@ void Chess::moveGenerator() {
 					bool rValid = (dirIndex == 1) && (targ  % _gameOps.X) < (nTarg % _gameOps.X);
 					if (lValid || rValid) {
 						ChessBit* bit = _grid[nTarg].bit();
+						bool enPassant = _state.top().getEnPassantSquare() == nTarg;
+						bool capture   = bit && !bit->isAlly(square.bit());
 						// if enpassant square is specified, then we know it's a legal move b/c en passant square is set on previous turn.
-						if ((_state.top().getEnPassantSquare() == nTarg) || (bit && !bit->isAlly(square.bit()))) {
-							_moves[index].emplace_back(index, nTarg, Move::FlagCodes::Capture);
+						if (enPassant || capture) {
+							// Capture + Promotion
+							if (canPromote) {
+								for (int i = 0; i < 4; i++) {
+									_moves[index].emplace_back(index, nTarg, (Move::FlagCodes::ToQueen << i) | Move::FlagCodes::Capture);
+								}
+							} else {
+								_moves[index].emplace_back(index, nTarg, Move::FlagCodes::Capture);
+							}
 						}
 					}
 				}
@@ -223,6 +239,20 @@ void Chess::moveGenerator() {
 						}
 					}
 					_moves[index].emplace_back(index, targ, Move::FlagCodes::Castling);
+				}
+
+				uint8_t rights = _state.top().getCastlingRights();
+				// Queenside
+				if ((rights & black ? 0b0100 : 0b0001) != 0) {
+					if (!_grid[index - 1].bit() && !_grid[index - 2].bit() && !_grid[index - 3].bit()) {
+						_moves[index].emplace_back(index, index - 2, Move::FlagCodes::QCastle);
+					}
+				}
+				// Kingside
+				if ((rights & black ? 0b1000 : 0b0010) != 0) {
+					if (!_grid[index + 1].bit() && !_grid[index + 2].bit()) {
+						_moves[index].emplace_back(index, index + 2, Move::FlagCodes::KCastle);
+					}
 				}
 				break; }
 			default:
@@ -289,20 +319,27 @@ void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 	if (_state.top().getEnPassantSquare() == j) {
 		_grid[j + (_state.top().isBlackTurn() ? 8 : -8)].destroyBit();
 		// increment score.
+	} else if (move->isCastle()) { // castle
+		uint8_t offset = _state.top().isBlackTurn() ? 56 : 0;
+		uint8_t rookSpot = (move->QueenSideCastle() ? 0 : 7) + offset;
+		uint8_t targ = (move->QueenSideCastle() ? 3 : 5) + offset;
+		_grid[targ].setBit(_grid[rookSpot].bit());
+		_grid[rookSpot].setBit(nullptr);
 	}
 
+	// check if we took a rook
 	_state.emplace(_state.top(), *move);
-
-	// Check if we just took a rook
 	if (j == 63 || j == 56 || j == 0 || j == 7) {
 		uint8_t flag = _state.top().getCastlingRights();
 		if (j == 56 || j == 0) {
-			flag &= _state.top().isBlackTurn() ? 0b1110 : 0b1011;
+			flag &= _state.top().isBlackTurn() ? ~0b0001 : ~0b0100;
 		} else if (j == 63 || j == 7) {
-			flag &= _state.top().isBlackTurn() ? 0b1101 : 0b0111;
+			flag &= _state.top().isBlackTurn() ? ~0b0010 : ~0b1000;
 		}
 		_state.top().setCastlingRights(flag);
 	}
+
+	// do some check to prompt the UI to select a promotion.
 
 	// call base.
 	Game::bitMovedFromTo(bit, src, dst);
@@ -345,7 +382,7 @@ std::string Chess::stateString() {
 	uint8_t emptyCount;
 
 	int file = 7, rank = 0;
-	for (unsigned int i = 0; i < _gameOps.size; i++) {
+	for (int i = 0; i < _gameOps.size; i++) {
 		char piece = _grid[file * 8 + rank].getPieceNotation();
 		rank++;
 

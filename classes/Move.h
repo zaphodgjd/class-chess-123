@@ -7,8 +7,7 @@
 
 // implementaiton borrowed from w/ modificaitons https://www.chessprogramming.org/Encoding_Moves
 
-//#pragma pack(push, 1)
-
+#pragma pack(push, 1)
 const uint8_t squareMask = 63U;
 class Move {
 	public:
@@ -52,11 +51,12 @@ class Move {
 	// really wish C++ had C# styled lambdas right now
 	bool isCapture()		const { return (getFlags() &  FlagCodes::Capture)		!= 0; }
 	bool isQuiet()			const { return (getFlags() & ~FlagCodes::Capture)		!= 0; }
-	bool isCastle()			const { return (getFlags() &  FlagCodes::Castling)		!= 0; }
+	bool isDoublePush()		const { return (getFlags() &  FlagCodes::DoublePush)	!= 0; }
+	bool isPromotion()		const { return (getFlags() &  FlagCodes::Promotion)		!= 0; }
 	bool KingSideCastle()	const { return (getFlags() &  FlagCodes::KCastle)		!= 0; }
 	bool QueenSideCastle()	const { return (getFlags() &  FlagCodes::QCastle)		!= 0; }
-	bool isPromotion()		const { return (getFlags() &  FlagCodes::Promotion)		!= 0; }
-	bool isDoublePush()		const { return (getFlags() &  FlagCodes::DoublePush)	!= 0; }
+	// Returns if a castle happened. Returns false if the king moved, but did not castle.
+	bool isCastle()			const { const int a = (getFlags() & FlagCodes::Castling) >> 2; return a < 3 && a > 0; }
 
 	// Future proofing
 	uint16_t getButterflyIndex() const { return move & 0x0fff; }
@@ -64,4 +64,4 @@ class Move {
 	protected:
 	uint32_t move;
 };
-//#pragma pack(pop)
+#pragma pack(pop)

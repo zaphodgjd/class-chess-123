@@ -57,8 +57,18 @@ namespace ClassGame {
 		ImGui::Text("Clock: %d", state.getClock());
 		ImGui::Text("Half Clock: %d", state.getHalfClock());
 		ImGui::Text("Black's Turn? %d", state.isBlackTurn());
-		ImGui::Text("En Passant Square: %d", state.getEnPassantSquare());
+		ImGui::Text("En Passant Square: %s", ChessSquare::indexToPosNotation(state.getEnPassantSquare()).c_str());
 		ImGui::Text("Castle Rights %d", state.getCastlingRights());
+
+		std::string stateStr = "";
+		const char* t = state.getState();
+		for (int i = 0; i < 64; i++) {
+			if (i % 8 == 0) {
+				stateStr += '\n';
+			}
+			stateStr += t[i];
+		}
+		ImGui::Text("%s", stateStr.c_str());
 		ImGui::EndChild();
 	}
 
