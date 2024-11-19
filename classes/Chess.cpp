@@ -310,7 +310,11 @@ void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 	// get the move being played
 	const uint8_t i = srcSquare.getIndex();
 	const uint8_t j = dstSquare.getIndex();
+
+	// this line currently garauntees that we'll auto turn into a queen b/c queen promotion option is always pushed first.
+	// eventually when I make a gui for it, we'll need to revise this to handle there being multiple "moves" for a single position.
 	Move* move = MoveForPositions(i, j);
+
 	if (!move) {
 		throw std::runtime_error("Illegal Move attempted ft: " + std::to_string(i) + " " + std::to_string(j));
 	}
@@ -325,6 +329,26 @@ void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 		uint8_t targ = (move->QueenSideCastle() ? 3 : 5) + offset;
 		_grid[targ].setBit(_grid[rookSpot].bit());
 		_grid[rookSpot].setBit(nullptr);
+	} else if (move->isPromotion()) {
+		// todo, but for the moment b/c of how our move is selected, queen will be only "move" we can make.
+		int newPiece = 0;
+		switch(move->getFlags() & Move::FlagCodes::Promotion) {
+			case Move::FlagCodes::ToQueen:
+				newPiece = ChessPiece::Queen;
+				break;
+			case Move::FlagCodes::ToKnight:
+				newPiece = ChessPiece::Knight;
+				break;
+			case Move::FlagCodes::ToRook:
+				newPiece = ChessPiece::Rook;
+				break;
+			case Move::FlagCodes::ToBishop:
+				newPiece = ChessPiece::Bishop;
+				break;
+		}
+
+		// awesome cast
+		dstSquare.setBit(PieceForPlayer(_state.top().isBlackTurn(), (ChessPiece)newPiece));
 	}
 
 	// check if we took a rook

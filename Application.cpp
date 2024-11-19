@@ -35,12 +35,12 @@ namespace ClassGame {
 			for(const std::pair<int, std::vector<Move>>& data : moveList) {
 				ImGui::TableNextRow();
 				ImGui::TableSetColumnIndex(0);
-				ImGui::Text("%s", std::to_string(data.first).c_str());
+				ImGui::Text("%s", ChessSquare::indexToPosNotation(data.first).c_str());
 
 				ImGui::TableSetColumnIndex(1);
 				std::string moves;
 				for (Move i : data.second) {
-					moves += std::to_string(i.getTo()) + " ";
+					moves += ChessSquare::indexToPosNotation(i.getTo()) + " ";
 				}
 				ImGui::Text("%s", moves.c_str());
 			}
