@@ -62,11 +62,16 @@ namespace ClassGame {
 
 		std::string stateStr = "";
 		const char* t = state.getState();
+		int file = 8;
+		int rank = 0;
 		for (int i = 0; i < 64; i++) {
 			if (i % 8 == 0) {
 				stateStr += '\n';
+				file--;
+				rank = 0;
 			}
-			stateStr += t[i];
+			stateStr += t[file * 8 + rank];
+			rank++;
 		}
 		ImGui::Text("%s", stateStr.c_str());
 		ImGui::EndChild();

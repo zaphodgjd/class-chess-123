@@ -5,7 +5,7 @@
 
 const uint8_t MAX_DEPTH = 24; // for AI purposes
 // Generate from FEN
-GameState::GameState(const bool isBlack, const uint8_t castling,
+GameState::GameState(const std::string& fen, const bool isBlack, const uint8_t castling,
 	const uint8_t enTarget, const uint8_t hClock, const uint16_t fClock) 
 	: isBlack(isBlack),
 	castlingRights(castling),
@@ -13,6 +13,31 @@ GameState::GameState(const bool isBlack, const uint8_t castling,
 	halfClock(hClock),
 	clock(fClock) {
 	std::memset(state, '0', sizeof(state));
+
+	int file = 7;
+	int rank = 0;
+	for (size_t i = 0; i < fen.size(); i++) {
+		const char symbol = fen[i];
+		if (symbol == ' ') { // terminating when reaching turn indicator
+			break;
+		}
+
+		if (symbol == '/') {
+			for (; rank < 8; rank++) {
+				state[file * 8 + rank] = '0';
+			}
+			rank = 0;
+			file--;
+		} else {
+			// this is for the gap syntax.
+			if (std::isdigit(symbol)) {
+				rank += symbol - '0';
+			} else {
+				state[file * 8 + rank] = symbol;
+				rank++;
+			}
+		}
+	}
 }
 
 // generate next move
@@ -25,6 +50,7 @@ GameState::GameState(const GameState& old, const Move& move)
 	enPassantSquare(move.isDoublePush() ? (move.getTo() + (isBlack ? -8 : 8)) : 255), // 255 b/c not a value normally reachable in gameplay
 	halfClock(move.isCapture() ? 0 : old.halfClock + 1),
 	clock(old.clock + 1) {
+	std::memcpy(state, old.state, sizeof(state));
 	char movingPiece = state[move.getFrom()];
 	state[move.getTo()] = movingPiece;
 	state[move.getFrom()] = '0';

@@ -1,13 +1,14 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "Move.h"
 
 class GameState {
 	public:
 	// Generate from FEN
-	GameState(const bool isBlack, const uint8_t castling,
+	GameState(const std::string& fen, const bool isBlack, const uint8_t castling,
 		const uint8_t enTarget, const uint8_t hClock, const uint16_t fClock);
 	
 	// generate next move

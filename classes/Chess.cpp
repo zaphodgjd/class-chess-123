@@ -323,7 +323,7 @@ void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
 	if (_state.top().getEnPassantSquare() == j) {
 		_grid[j + (_state.top().isBlackTurn() ? 8 : -8)].destroyBit();
 		// increment score.
-	} else if (move->isCastle()) { // castle
+	} else if (move->isCastle() && ((bit.gameTag() & ChessPiece::King) == ChessPiece::King)) { // castle
 		uint8_t offset = _state.top().isBlackTurn() ? 56 : 0;
 		uint8_t rookSpot = (move->QueenSideCastle() ? 0 : 7) + offset;
 		uint8_t targ = (move->QueenSideCastle() ? 3 : 5) + offset;
@@ -463,9 +463,6 @@ std::string Chess::stateString() {
 	return s;
 }
 
-// for my sanity
-#include <sstream>
-
 // this still needs to be tied into imguis init and shutdown
 // when the program starts it will load the current game from the imgui ini file and set the game state to the last saved state
 // modified from Sebastian Lague's Coding Adventure on Chess. 2:37
@@ -529,10 +526,7 @@ void Chess::setStateString(const std::string& fen) {
 	while (std::isdigit(fen[++i])) { hClock = hClock * 10 + (fen[i] - '0'); }
 	while (std::isdigit(fen[++i])) { fClock = fClock * 10 + (fen[i] - '0'); }
 
-	std::ostringstream oss;
-	oss << "State from FEN: " << fen << " | " << isBlack << ", " << (int)castling << ", " << (int)enTarget << ", " << (int)hClock << ", " << (int)fClock; 
-	Loggy.log(oss.str());
-	_state.emplace(isBlack, castling, enTarget, hClock, fClock);
+	_state.emplace(fen, isBlack, castling, enTarget, hClock, fClock);
 }
 
 // this is the function that will be called by the AI

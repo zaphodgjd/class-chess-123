@@ -62,6 +62,6 @@ class Move {
 	uint16_t getButterflyIndex() const { return move & 0x0fff; }
 
 	protected:
-	uint32_t move;
+	uint32_t move : 24;
 };
 #pragma pack(pop)
