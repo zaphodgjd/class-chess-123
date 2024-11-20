@@ -133,6 +133,23 @@ std::vector<int>  queenMoves(int position, std::string boardState, int color){
 }
 std::vector<int>  kingMoves(int position, std::string boardState, int color){
 	std::vector<int> moves;
+	if (color == 1 && position == 4){
+		if (boardState[0] == *"R" && boardState[1] == *"0" && boardState[2] == *"0" && boardState[3] == *"0" ){
+			moves.push_back(128);
+		}
+		if (boardState[7] == *"R" && boardState[6] == *"0" && boardState[5] == *"0" ){
+			moves.push_back(129);
+		}
+	}
+	if (color == 0 && position == 60){
+		if (boardState[56] == *"r" && boardState[57] == *"0" && boardState[58] == *"0" && boardState[59] == *"0" ){
+			moves.push_back(128);
+		}
+		if (boardState[63] == *"r" && boardState[62] == *"0" && boardState[61] == *"0" ){
+			moves.push_back(129);
+		}
+	}
+	
 	moves.push_back(position + 8);
 	moves.push_back(position - 8);
 	if (position%8 > 0){

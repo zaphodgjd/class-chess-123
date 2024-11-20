@@ -33,6 +33,7 @@ namespace ClassGame {
                 ImGui::Begin("Settings");
                 ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
                 ImGui::Text("Current Board State: %s", game->stateString().c_str());
+                ImGui::Text("Current Turn Number: %d", game->getCurrentTurnNo());
 
                 if (gameOver) {
                     ImGui::Text("Game Over!");

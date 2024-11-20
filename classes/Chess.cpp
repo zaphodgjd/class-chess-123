@@ -34,6 +34,31 @@ Bit* Chess::PieceForPlayer(const int playerNumber, ChessPiece piece)
 void Chess::setUpBoard()
 {
     ChessPiece backRowArray[8] = {Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook};
+    std::string Fen = std::string("5k2/8/8/8/8/8/8/4K2R w K - 0 1");
+    std::unordered_map<std::string, int> mappings = {
+    {"r", Rook},
+    {"n", Knight},
+    {"b", Bishop},
+    {"q", Queen},
+    {"k", King},
+    {"p", Pawn},
+    {"R", Rook + 128},
+    {"N", Knight + 128},
+    {"B", Bishop + 128},
+    {"Q", Queen + 128},
+    {"K", King + 128},
+    {"P", Pawn + 128}
+    };
+    std::unordered_map<std::string, int> quickConvert = {
+    {"1", 1},
+    {"2", 2},
+    {"3", 3},
+    {"4", 4},
+    {"5", 5},
+    {"6", 6},
+    {"7", 7},
+    {"8", 8}
+    };
     setNumberOfPlayers(2);
     _gameOptions.rowX = 8;
     _gameOptions.rowY = 8;
@@ -42,25 +67,77 @@ void Chess::setUpBoard()
             _grid[x][y].initHolder(ImVec2(50*x +100, 50*y + 100), "square.png", x, y);
         }
     }
-    for (int x = 0; x<8; x+=7){
-        for (int y = 0; y<8; y++){
-            Bit *bit = PieceForPlayer((x == 0) ? 1:0, backRowArray[y]);
-            BitHolder& holder = getHolderAt(x,y);
-            bit->setPosition(holder.getPosition());
-            bit->setGameTag((x==0) ? backRowArray[y]: backRowArray[y] + 128);
-            holder.setBit(bit);
+    int row = 0;
+    int input = 0;
+    for (int i = 0; i < Fen.length(); ++i) {
+        int absolutePos = i + row;
+        if (absolutePos < 64){
+            char curChar = Fen.at(i);
+            std::string curCharStr(1, curChar);
+            if (mappings.count(curCharStr) == 0){
+                if (curChar == *"/"){
+                    row -= 1;
+                } else if (quickConvert[curCharStr] <= 8){
+                    row += quickConvert[curCharStr] - 1;
+                }
+            } else {
+                int piece = mappings[curCharStr];
+                Bit *bit = PieceForPlayer((piece < 128) ? 1:0, ChessPiece(piece % 128));
+                BitHolder& holder = getHolderAt(absolutePos / 8, absolutePos % 8);
+                bit->setPosition(holder.getPosition());
+                bit->setGameTag(piece);
+                holder.setBit(bit);
+            }
+        } else {
+            char curChar = Fen.at(i);
+            if (curChar == *" "){
+            input +=1;
+            }
+            else if (input == 1){
+                if (curChar == *"b"){
+                    endTurn();
+                }
+                _canCastle[0] = 0;
+                _canCastle[1] = 0;
+                _canCastle[2] = 0;
+                _canCastle[3] = 0;
+            }
+            else if(input == 2){
+                if (curChar == *"Q"){
+                    _canCastle[0] = 1;
+                }
+                if (curChar == *"K"){
+                    _canCastle[1] = 1;
+                }
+                if (curChar == *"q"){
+                    _canCastle[2] = 1;
+                }
+                if (curChar == *"K"){
+                    _canCastle[3] = 1;
+                }
+            }
+            else if (input == 3){
+                if (curChar == *"-"){ 
+                } else {
+                    int charToInt = (int)curChar - 97;
+                    _enPassant = charToInt * 8;
+                }
+                input += 1;
+            }
+            else if (input == 4){
+                int num = curChar - '0';
+                _enPassant += num;
+            }
+            else if (input == 5){
+                int num = curChar - '0';
+                _halfMoves = num;
+            }
+            else if (input == 6){
+                int num = curChar - '0';
+                _gameOptions.currentTurnNo = num;
+            }
         }
     }
-    for (int x = 1; x<8; x+=5){
-        for (int y = 0; y<8; y++){
-            Bit *bit = PieceForPlayer((x == 1) ? 1:0, Pawn);
-            BitHolder& holder = getHolderAt(x,y);
-            bit->setPosition(holder.getPosition());
-            bit->setGameTag((x==1) ? Pawn: Pawn + 128);
-            holder.setBit(bit);
-        }
-    }
-
 
     startGame();
 }
@@ -87,6 +164,54 @@ bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst, Player* p
     }
     ChessPiece piece = ChessPieceArray[bit.gameTag() % 8];
     std::vector<int> possibleMoves = generateMoves(((src.getRow()*8) + src.getColumn()), stateString());
+
+    //Castling Logic
+    if (player->playerNumber() == 1 && piece == King){
+        if (_canCastle[2] == 1 && ((dst.getRow() * 8 ) + dst.getColumn()) == 2){
+            if (std::count(possibleMoves.begin(), possibleMoves.end(), 128) >= 1){
+                return true;
+            }
+        }
+        if (_canCastle[3] == 1 && ((dst.getRow() * 8 ) + dst.getColumn()) == 6){
+            if (std::count(possibleMoves.begin(), possibleMoves.end(), 129) >= 1){
+                return true;
+            }
+        }
+    }
+    if (player->playerNumber() == 0 && piece == King){
+        if (_canCastle[0] == 1 && (((dst.getRow() * 8 ) + dst.getColumn()) == 58)){
+            if (std::count(possibleMoves.begin(), possibleMoves.end(), 128) >= 1){
+                return true;
+            }
+        }
+        if (_canCastle[1] == 1 && (((dst.getRow() * 8 ) + dst.getColumn()) == 62)){
+            if (std::count(possibleMoves.begin(), possibleMoves.end(), 129) >= 1){
+                return true;
+            }
+        }
+    }
+    if (((dst.getRow() * 8 ) + dst.getColumn() == _enPassant) && piece == Pawn){
+        if (player->playerNumber() == 0){
+            if(src.getColumn() == dst.getColumn() + 1|| src.getColumn() == dst.getColumn() - 1){
+                if(src.getRow() == dst.getRow() + 1){  
+                    return true;
+                }
+            }   
+        }
+        if (player->playerNumber() == 1){
+            if(src.getColumn() == dst.getColumn() + 1|| src.getColumn() == dst.getColumn() - 1){
+                if(src.getRow() == dst.getRow() - 1){  
+                    return true;
+                }
+            }   
+        }
+    }
+
+
+
+
+
+
     if (std::count(possibleMoves.begin(), possibleMoves.end(), (((dst.getRow() * 8 ) + dst.getColumn()))) >= 1){
         return true;
     }
@@ -95,6 +220,100 @@ bool Chess::canBitMoveFromTo(Bit& bit, BitHolder& src, BitHolder& dst, Player* p
 }
 
 void Chess::bitMovedFromTo(Bit &bit, BitHolder &src, BitHolder &dst) {
+    Player* player = bit.getOwner();
+    int piece = bit.gameTag();
+
+    //King castling logic
+    if (piece == King || piece == King + 128){
+        if (player->playerNumber() == 1){
+           if (_canCastle[2] == 1 && dst.getColumn() == 2){
+                BitHolder &holder = getHolderAt(0, 0);
+                Bit *castle = holder.bit();
+                BitHolder &castleHolder = getHolderAt(0,3);
+                castle->setPosition(castleHolder.getPosition());
+                castleHolder.setBit(castle);
+           }
+           if (_canCastle[3] == 1 && dst.getColumn() == 6){
+                BitHolder &holder = getHolderAt(0, 7);
+                Bit *castle = holder.bit();
+                BitHolder &castleHolder = getHolderAt(0,5);
+                castle->setPosition(castleHolder.getPosition());
+                castleHolder.setBit(castle);
+           }
+            _canCastle[2] = 0;
+            _canCastle[3] = 0;
+        } if(player->playerNumber() == 0){
+            if (_canCastle[0] == 1 && dst.getColumn() == 2){
+                BitHolder &holder = getHolderAt(7, 0);
+                Bit *castle = holder.bit();
+                BitHolder &castleHolder = getHolderAt(7,3);
+                castle->setPosition(castleHolder.getPosition());
+                castleHolder.setBit(castle);
+           }
+           if (_canCastle[1] == 1 && dst.getColumn() == 6){
+                BitHolder &holder = getHolderAt(7, 7);
+                Bit *castle = holder.bit();
+                BitHolder &castleHolder = getHolderAt(7,5);
+                castle->setPosition(castleHolder.getPosition());
+                castleHolder.setBit(castle);
+           }
+            _canCastle[0] = 0;
+            _canCastle[1] = 0;
+        }
+    }
+    
+    //Rook castling logic
+
+    if (piece == Rook){
+        if (src.getColumn() == 0 && src.getRow() == 0){
+            _canCastle[2] = 0; 
+        }
+        if (src.getColumn() == 7 && src.getRow() == 0){
+            _canCastle[3] = 0; 
+        }
+    }
+    if (piece == Rook + 128){
+        if (src.getColumn() == 0 && src.getRow() == 7){
+            _canCastle[0] = 0; 
+        }
+        if (src.getColumn() == 7 && src.getRow() == 7){
+            _canCastle[1] = 0; 
+        }
+    }
+    if (piece % 128 == Pawn && (((dst.getRow()*8) + dst.getColumn()) == _enPassant)){
+        int playerValue = (player->playerNumber() == 0) ? 1:-1;
+        BitHolder &holder = getHolderAt (dst.getRow() + playerValue, dst.getColumn());
+        holder.destroyBit();
+    }
+
+    if (piece % 128 == Pawn && abs(dst.getRow() - src.getRow()) == 2){
+        _enPassant = (dst.getRow() * 8) + dst.getColumn();
+        if (player->playerNumber() == 0){
+            _enPassant += 8;
+        } else{
+            _enPassant -= 8;
+        }
+    } else {
+        _enPassant = 0;
+    }
+    
+    
+
+
+    //Promotion
+    if (piece == Pawn && dst.getRow() == 7){
+        Bit *bit = PieceForPlayer(1, Queen);
+        bit->setPosition(dst.getPosition());
+        bit->setGameTag(Queen);
+        dst.setBit(bit);
+    }
+    if (piece == Pawn + 128 && dst.getRow() == 0){
+        Bit *bit = PieceForPlayer(0, Queen);
+        bit->setPosition(dst.getPosition());
+        bit->setGameTag(Queen + 128);
+        dst.setBit(bit);
+    }
+    
     endTurn();
 }
 

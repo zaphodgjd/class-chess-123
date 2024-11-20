@@ -47,5 +47,8 @@ private:
     const char  bitToPieceNotation(int row, int column) const;
 
     ChessSquare      _grid[8][8];
+    int            _canCastle[4] = {1,1,1,1}; // 0 k 1 q 2 K 3 Q
+    int             _enPassant = 0;
+    int             _halfMoves = 0;
 };
 
