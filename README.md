@@ -1,6 +1,14 @@
 # Chess AI Implementation Project
 
-![Chess Board](https://raw.githubusercontent.com/zaphodgjd/class-chess-123/main/chess/w_king.png)
+![Chess Board](https://raw.githubusercontent.com/nityamthakur/class-chess-123/main/chess/w_king.png)
+
+Before:
+
+![Before](https://raw.githubusercontent.com/nityamthakur/class-chess-123/main/chess/ss1.png)
+
+After:
+
+![After](https://raw.githubusercontent.com/nityamthakur/class-chess-123/main/chess/ss2.png)
 
 ## 🎯 Project Overview
 This repository contains a skeleton implementation of a Chess AI engine written in C++. The project is designed to teach fundamental concepts of game AI, including board representation, move generation, and basic game tree search algorithms.
