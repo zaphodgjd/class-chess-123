@@ -149,3 +149,5 @@ Part 2
 -Added conditions for castlig, promotion and en passant
 -Changed bitmove functions to include additional mechanics
 -Added support for FEN strings
+
+Testing new branch
