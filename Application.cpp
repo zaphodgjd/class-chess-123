@@ -28,11 +28,11 @@ namespace ClassGame {
         {
                 ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
 
-                //ImGui::ShowDemoWindow();
+                ImGui::ShowDemoWindow();
 
                 ImGui::Begin("Settings");
-                //ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
-                //ImGui::Text("Current Board State: %s", game->stateString().c_str());
+                ImGui::Text("Current Player Number: %d", game->getCurrentPlayer()->playerNumber());
+                ImGui::Text("Current Board State: %s", game->stateString().c_str());
 
                 if (gameOver) {
                     ImGui::Text("Game Over!");
