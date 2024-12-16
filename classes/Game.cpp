@@ -87,17 +87,22 @@ void Game::startGame()
 	_gameOptions.currentTurnNo = 0;
 }
 
-void Game::endTurn()
-{
-	_gameOptions.currentTurnNo++;
-	std::string startState = stateString();
-	Turn *turn = new Turn;
-	turn->_boardState = stateString();
-	turn->_date = (int)_gameOptions.currentTurnNo;
-	turn->_score = _gameOptions.score;
-	turn->_gameNumber = _gameOptions.gameNumber;
-	_turns.push_back(turn);
-	ClassGame::EndOfTurn();
+void Game::endTurn() {
+    _gameOptions.currentTurnNo++;
+
+    // Handle AI turn if necessary
+    if (_gameOptions.AIPlaying && getCurrentPlayer()->isAIPlayer()) {
+        updateAI();
+    }
+
+    std::string startState = stateString();
+    Turn *turn = new Turn;
+    turn->_boardState = stateString();
+    turn->_date = (int)_gameOptions.currentTurnNo;
+    turn->_score = _gameOptions.score;
+    turn->_gameNumber = _gameOptions.gameNumber;
+    _turns.push_back(turn);
+    ClassGame::EndOfTurn();
 }
 
 //
