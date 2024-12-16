@@ -46,30 +46,21 @@ public:
     void FENtoBoard(const std::string& fen);
     std::string boardToFEN();
 
-    // New method to enable/disable AI
-    void setPlayAgainstAI(bool enableAI) { _playAgainstAI = enableAI; }
-
 private:
     // Helper functions for setting up and managing pieces
     Bit* PieceForPlayer(const int playerNumber, ChessPiece piece);
     void updatePieces(uint64_t& pieces, bool forWhite);
-    std::vector<int> getRookMoves(int x, int y, bool isWhite) const;
-    std::vector<int> getBishopMoves(int x, int y, bool isWhite) const;
-    std::vector<int> getKnightMoves(int x, int y, bool isWhite) const;
-    std::vector<int> getPawnMoves(int x, int y, bool isWhite) const;
-    std::vector<int> getKingMoves(int x, int y, bool isWhite) const;
+    std::vector<int> getRookMoves(int x, int y, bool isWhite);
+    std::vector<int> getBishopMoves(int x, int y, bool isWhite);
+    std::vector<int> getKnightMoves(int x, int y, bool isWhite);
+    std::vector<int> getPawnMoves(int x, int y, bool isWhite);
+    std::vector<int> getKingMoves(int x, int y, bool isWhite);
     void handleCastlingMoves(int srcX, int srcY, bool isWhite, std::vector<int>& validMoves);
     void handleEnPassantMoves(int srcX, int srcY, int dstX, int dstY, bool isWhite, std::vector<int>& validMoves);
     void handleCastlingRookMove(int srcX, int dstX, bool isWhite);
     void checkEnPassant(Bit& bit, ChessSquare& srcSquare, ChessSquare& dstSquare, int direction);
     void checkPawnPromotion(Bit& bit, ChessSquare& srcSquare, ChessSquare& dstSquare, int promotionRow);
     bool isSquareUnderAttack(int row, int col, bool byWhite);
-
-    // Helper functions for AI
-    int evaluateBoard() const;
-    std::vector<std::pair<int, int>> generateLegalMoves() const;
-    void applyMove(const std::pair<int, int>& move);
-    int negamax(int depth, int alpha, int beta, bool isMaximizing);
 
     const char bitToPieceNotation(int row, int column) const;
 
@@ -88,7 +79,4 @@ private:
 
     // Halfmove clock for fifty-move rule
     int _halfmoveClock = 0;
-
-    // New member variable for AI mode
-    bool _playAgainstAI = false;
 };
